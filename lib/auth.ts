@@ -8,7 +8,7 @@ import {
   User,
   updateProfile,
 } from 'firebase/auth'
-import { doc, setDoc, getDoc } from 'firebase/firestore'
+import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore'
 import { auth, db } from './firebase'
 
 const googleProvider = new GoogleAuthProvider()
@@ -16,7 +16,9 @@ const googleProvider = new GoogleAuthProvider()
 export interface UserProfile {
   uid: string
   email: string
+  displayName?: string
   companyName: string
+  photoURL?: string
   createdAt: string
   updatedAt: string
 }
@@ -83,13 +85,29 @@ export const signInWithGoogle = async () => {
       userProfile = {
         uid: user.uid,
         email: user.email!,
-        companyName: user.displayName || 'My Company',
+        displayName: user.displayName || undefined,
+        companyName: 'My Company', // Default company name
+        photoURL: user.photoURL || undefined,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       }
       await setDoc(doc(db, 'users', user.uid), userProfile)
     } else {
       userProfile = userDoc.data() as UserProfile
+      // Update photo URL and display name if they have changed
+      const needsUpdate = 
+        (user.photoURL && user.photoURL !== userProfile.photoURL) ||
+        (user.displayName && user.displayName !== userProfile.displayName)
+      
+      if (needsUpdate) {
+        userProfile.photoURL = user.photoURL || userProfile.photoURL
+        userProfile.displayName = user.displayName || userProfile.displayName
+        await updateDoc(doc(db, 'users', user.uid), {
+          photoURL: user.photoURL,
+          displayName: user.displayName,
+          updatedAt: new Date().toISOString(),
+        })
+      }
     }
 
     return { user, userProfile }

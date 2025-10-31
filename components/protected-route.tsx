@@ -1,20 +1,29 @@
 "use client"
 
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/hooks/use-auth"
 
 export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, loading } = useAuth()
+  const { user, initializing } = useAuth()
   const router = useRouter()
+  const [redirectAttempted, setRedirectAttempted] = useState(false)
+
+  // Clear any stuck sessionStorage flags
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem('redirecting')
+    }
+  }, [])
 
   useEffect(() => {
-    if (!loading && !user) {
-      router.push("/")
+    if (!initializing && !user && !redirectAttempted) {
+      setRedirectAttempted(true)
+      router.replace("/")
     }
-  }, [user, loading, router])
+  }, [user, initializing, redirectAttempted, router])
 
-  if (loading) {
+  if (initializing) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">

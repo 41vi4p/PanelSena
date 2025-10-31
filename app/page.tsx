@@ -24,14 +24,23 @@ export default function LoginPage() {
   const [error, setError] = useState("")
 
   const router = useRouter()
-  const { user, loading: authLoading } = useAuth()
+  const { user, initializing } = useAuth()
+  const [redirectAttempted, setRedirectAttempted] = useState(false)
 
   // Redirect to dashboard if already authenticated
   useEffect(() => {
-    if (user && !authLoading) {
-      router.push("/dashboard")
+    if (!initializing && user && !redirectAttempted) {
+      setRedirectAttempted(true)
+      router.replace("/dashboard")
     }
-  }, [user, authLoading, router])
+  }, [user, initializing, redirectAttempted, router])
+
+  // Clear any stuck sessionStorage flags
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      window.sessionStorage.removeItem('redirecting')
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -49,7 +58,7 @@ export default function LoginPage() {
       } else {
         await signIn(email, password)
       }
-      router.push("/dashboard")
+      // Auth state change will trigger redirect automatically
     } catch (err: any) {
       console.error("Auth error:", err)
 
@@ -66,7 +75,7 @@ export default function LoginPage() {
 
     try {
       await signInWithGoogle()
-      router.push("/dashboard")
+      // Auth state change will trigger redirect automatically
     } catch (err: any) {
       console.error("Google sign-in error:", err)
       setError("Failed to sign in with Google. Please try again.")
@@ -93,11 +102,29 @@ export default function LoginPage() {
     }
   }
 
-  if (authLoading) {
+  // Show loading during initial auth check
+  if (initializing) {
     return (
       <ThemeProvider>
         <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center">
-          <p className="text-muted-foreground">Loading...</p>
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading...</p>
+          </div>
+        </div>
+      </ThemeProvider>
+    )
+  }
+
+  // Show redirecting if user exists
+  if (user) {
+    return (
+      <ThemeProvider>
+        <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Redirecting to dashboard...</p>
+          </div>
         </div>
       </ThemeProvider>
     )
@@ -232,7 +259,7 @@ export default function LoginPage() {
               <div className="mt-6 text-center">
                 <p className="text-sm text-muted-foreground">
                   {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-                  <button onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline font-medium">
+                  <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-primary hover:underline font-medium">
                     {isSignUp ? "Sign In" : "Sign Up"}
                   </button>
                 </p>

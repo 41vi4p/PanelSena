@@ -14,21 +14,21 @@ const schedules = [
 
 export default function SchedulePage() {
   return (
-    <div className="p-6 space-y-6">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Scheduling</h1>
-          <p className="text-muted-foreground mt-1">Create and manage content schedules</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Scheduling</h1>
+          <p className="text-sm sm:text-base text-muted-foreground mt-1">Create and manage content schedules</p>
         </div>
-        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground">
+        <Button className="bg-primary hover:bg-primary/90 text-primary-foreground w-full sm:w-auto">
           <Plus className="w-4 h-4 mr-2" />
           New Schedule
         </Button>
       </div>
 
       {/* Schedules Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         {schedules.map((schedule) => (
           <Card key={schedule.id} className="border-border/50">
             <CardHeader className="pb-3">

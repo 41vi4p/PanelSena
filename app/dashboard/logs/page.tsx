@@ -137,16 +137,16 @@ export default function LogsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 p-6">
-      <div className="max-w-6xl mx-auto space-y-6">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-muted/30 p-4 sm:p-6">
+      <div className="max-w-6xl mx-auto space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="space-y-2">
-          <h1 className="text-3xl font-bold text-foreground">Activity Logs</h1>
-          <p className="text-muted-foreground">Monitor all system activities and events</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Activity Logs</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">Monitor all system activities and events</p>
         </div>
 
         {/* Controls */}
-        <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
             <Input
@@ -156,39 +156,39 @@ export default function LogsPage() {
               className="pl-10 bg-card/50 backdrop-blur-sm border-border/50"
             />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 overflow-x-auto">
             <Button
               variant={filterType === "all" ? "default" : "outline"}
               onClick={() => setFilterType("all")}
-              className="bg-card/50 backdrop-blur-sm border-border/50"
+              className="bg-card/50 backdrop-blur-sm border-border/50 whitespace-nowrap"
             >
               All
             </Button>
             <Button
               variant={filterType === "success" ? "default" : "outline"}
               onClick={() => setFilterType("success")}
-              className="bg-card/50 backdrop-blur-sm border-border/50"
+              className="bg-card/50 backdrop-blur-sm border-border/50 whitespace-nowrap"
             >
               Success
             </Button>
             <Button
               variant={filterType === "warning" ? "default" : "outline"}
               onClick={() => setFilterType("warning")}
-              className="bg-card/50 backdrop-blur-sm border-border/50"
+              className="bg-card/50 backdrop-blur-sm border-border/50 whitespace-nowrap"
             >
               Warning
             </Button>
             <Button
               variant={filterType === "error" ? "default" : "outline"}
               onClick={() => setFilterType("error")}
-              className="bg-card/50 backdrop-blur-sm border-border/50"
+              className="bg-card/50 backdrop-blur-sm border-border/50 whitespace-nowrap"
             >
               Error
             </Button>
           </div>
-          <Button className="bg-gradient-to-r from-primary to-accent hover:opacity-90 text-primary-foreground">
+          <Button className="bg-linear-to-r from-primary to-accent hover:opacity-90 text-primary-foreground whitespace-nowrap">
             <Download className="w-4 h-4 mr-2" />
-            Export
+            <span className="hidden sm:inline">Export</span>
           </Button>
         </div>
 

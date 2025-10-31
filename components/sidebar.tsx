@@ -2,12 +2,14 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Monitor, BarChart3, FileText, Clock, Settings, HelpCircle, Menu, Activity } from "lucide-react"
+import { Monitor, BarChart3, FileText, Clock, Settings, HelpCircle, Menu, Activity, ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface SidebarProps {
   open: boolean
   onToggle: () => void
+  collapsed: boolean
+  onCollapse: () => void
 }
 
 const menuItems = [
@@ -21,7 +23,7 @@ const menuItems = [
   { href: "/dashboard/help", label: "Help & Support", icon: HelpCircle },
 ]
 
-export default function Sidebar({ open, onToggle }: SidebarProps) {
+export default function Sidebar({ open, onToggle, collapsed, onCollapse }: SidebarProps) {
   const pathname = usePathname()
 
   return (
@@ -33,17 +35,19 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
 
       {/* Sidebar */}
       <aside
-        className={`fixed lg:relative w-64 h-screen bg-sidebar border-r border-sidebar-border/50 flex flex-col transition-transform duration-300 z-30 ${
+        className={`fixed lg:relative h-screen bg-sidebar border-r border-sidebar-border/50 flex flex-col transition-all duration-300 z-30 ${
+          collapsed ? "w-20" : "w-64"
+        } ${
           open ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Logo */}
-        <div className="p-6 border-b border-sidebar-border/50">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-gradient-to-br from-sidebar-primary to-accent rounded-lg shadow-lg">
+        <div className="p-6 border-b border-sidebar-border/50 flex items-center justify-between">
+          <div className={`flex items-center gap-2 ${collapsed ? "justify-center w-full" : ""}`}>
+            <div className="p-2 bg-linear-to-br from-sidebar-primary to-accent rounded-lg shadow-lg">
               <Monitor className="w-5 h-5 text-sidebar-primary-foreground" />
             </div>
-            <span className="font-bold text-sidebar-foreground">PanelSena</span>
+            {!collapsed && <span className="font-bold text-sidebar-foreground">PanelSena</span>}
           </div>
         </div>
 
@@ -51,19 +55,25 @@ export default function Sidebar({ open, onToggle }: SidebarProps) {
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
           {menuItems.map((item) => {
             const Icon = item.icon
-            const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+            // For Dashboard, only match exact path. For others, match if pathname starts with the href
+            const isActive = item.href === "/dashboard" 
+              ? pathname === item.href 
+              : pathname === item.href || pathname.startsWith(item.href + "/")
             return (
               <Link key={item.href} href={item.href}>
                 <Button
                   variant={isActive ? "default" : "ghost"}
-                  className={`w-full justify-start gap-3 transition-all ${
+                  className={`w-full transition-all ${
+                    collapsed ? "justify-center px-2" : "justify-start gap-3"
+                  } ${
                     isActive
-                      ? "bg-gradient-to-r from-sidebar-primary to-accent text-sidebar-primary-foreground shadow-lg"
+                      ? "bg-linear-to-r from-sidebar-primary to-accent text-sidebar-primary-foreground shadow-lg"
                       : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                   }`}
+                  title={collapsed ? item.label : undefined}
                 >
                   <Icon className="w-4 h-4" />
-                  {item.label}
+                  {!collapsed && item.label}
                 </Button>
               </Link>
             )

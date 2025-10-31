@@ -88,15 +88,15 @@ export default function HelpPage() {
   })
 
   return (
-    <div className="p-6 space-y-6 max-w-4xl">
+    <div className="p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Help & Support</h1>
-        <p className="text-muted-foreground mt-1">Find answers and get support for PanelSena</p>
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Help & Support</h1>
+        <p className="text-sm sm:text-base text-muted-foreground mt-1">Find answers and get support for PanelSena</p>
       </div>
 
       {/* Support Options */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
         <Card className="border-border/50 hover:border-border transition-colors cursor-pointer">
           <CardContent className="pt-6 text-center space-y-3">
             <div className="flex justify-center">

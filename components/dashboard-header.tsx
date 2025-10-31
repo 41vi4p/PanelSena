@@ -27,7 +27,7 @@ export function DashboardHeader({ user }: DashboardHeaderProps) {
   const handleSignOut = async () => {
     try {
       await signOut()
-      router.push("/")
+      router.replace("/")
     } catch (error) {
       console.error("Error signing out:", error)
     }

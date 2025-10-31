@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardHeader } from "@/components/dashboard-header"
 import { ScheduleCalendar } from "@/components/schedule-calendar"
 import { ScheduleForm } from "@/components/schedule-form"
 import { ScheduleList } from "@/components/schedule-list"
@@ -127,27 +126,23 @@ export default function SchedulingPage() {
 
   const filteredSchedules = schedules.filter((s) => filterStatus.includes(s.status))
 
-  const user = { email: "user@example.com", companyName: "My Company" }
-
   const activeCount = schedules.filter((s) => s.status === "active").length
   const scheduledCount = schedules.filter((s) => s.status === "scheduled").length
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader user={user} />
-
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Content Scheduling</h1>
-            <p className="text-muted-foreground mt-1">Schedule content for your displays</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Content Scheduling</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Schedule content for your displays</p>
           </div>
           <div className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="gap-2 bg-transparent hover:bg-muted">
                   <Filter className="w-4 h-4" />
-                  Filter
+                  <span className="hidden sm:inline">Filter</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -179,7 +174,7 @@ export default function SchedulingPage() {
               className="gap-2"
             >
               <Plus className="w-4 h-4" />
-              New Schedule
+              <span className="hidden sm:inline">New Schedule</span>
             </Button>
           </div>
         </div>

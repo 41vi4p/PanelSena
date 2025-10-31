@@ -1,7 +1,6 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardHeader } from "@/components/dashboard-header"
 import { DisplayList } from "@/components/display-list"
 import { DisplayDetailsModal } from "@/components/display-details-modal"
 import { Button } from "@/components/ui/button"
@@ -149,24 +148,20 @@ export default function DisplaysPage() {
 
   const filteredDisplays = displays.filter((d) => filterStatus.includes(d.status))
 
-  const user = { email: "user@example.com", companyName: "My Company" }
-
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader user={user} />
-
-      <main className="max-w-7xl mx-auto px-4 py-8">
-        <div className="flex items-center justify-between mb-8">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 lg:py-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6 sm:mb-8">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Display Management</h1>
-            <p className="text-muted-foreground mt-1">Manage and configure all your displays</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Display Management</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Manage and configure all your displays</p>
           </div>
           <div className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="gap-2 bg-transparent hover:bg-muted">
                   <Filter className="w-4 h-4" />
-                  Filter
+                  <span className="hidden sm:inline">Filter</span>
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
@@ -186,7 +181,7 @@ export default function DisplaysPage() {
             </DropdownMenu>
             <Button onClick={handleAddDisplay} className="gap-2">
               <Plus className="w-4 h-4" />
-              Add Display
+              <span className="hidden sm:inline">Add Display</span>
             </Button>
           </div>
         </div>
