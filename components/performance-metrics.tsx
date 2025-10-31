@@ -8,32 +8,33 @@ interface PerformanceMetricsProps {
 }
 
 export function PerformanceMetrics({ timeRange }: PerformanceMetricsProps) {
+  // TODO: Fetch performance metrics from Firebase
   const metrics = [
     {
       title: "Avg. Uptime",
-      value: "99.2%",
-      change: "+0.5%",
+      value: "0%",
+      change: "0%",
       icon: Activity,
       color: "text-green-500",
     },
     {
       title: "Total Views",
-      value: "24,582",
-      change: "+12.5%",
+      value: "0",
+      change: "0%",
       icon: TrendingUp,
       color: "text-blue-500",
     },
     {
       title: "Avg. Display Time",
-      value: "4m 32s",
-      change: "+8.2%",
+      value: "0s",
+      change: "0%",
       icon: Clock,
       color: "text-purple-500",
     },
     {
       title: "Critical Alerts",
-      value: "2",
-      change: "-1",
+      value: "0",
+      change: "0",
       icon: AlertTriangle,
       color: "text-amber-500",
     },

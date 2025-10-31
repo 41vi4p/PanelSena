@@ -3,150 +3,142 @@
 import { useState } from "react"
 import { DisplayList } from "@/components/display-list"
 import { DisplayDetailsModal } from "@/components/display-details-modal"
+import { DeviceLinkDialog } from "@/components/device-link-dialog"
 import { Button } from "@/components/ui/button"
-import { Plus, Filter } from "lucide-react"
+import { Plus, Filter, Link as LinkIcon } from "lucide-react"
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
-
-interface Display {
-  id: number
-  name: string
-  location: string
-  status: "online" | "offline"
-  resolution: string
-  uptime: string
-  brightness: number
-  orientation: "landscape" | "portrait"
-  lastUpdate: string
-  group: string
-}
+import { useAuth } from "@/hooks/use-auth"
+import { useDisplays } from "@/hooks/use-displays"
+import { Display } from "@/lib/types"
 
 export default function DisplaysPage() {
-  const [displays, setDisplays] = useState<Display[]>([
-    {
-      id: 1,
-      name: "Lobby Display",
-      location: "Main Entrance",
-      status: "online",
-      resolution: "1920x1080",
-      uptime: "99.8%",
-      brightness: 80,
-      orientation: "landscape",
-      lastUpdate: "2 hours ago",
-      group: "Entrance",
-    },
-    {
-      id: 2,
-      name: "Conference Room A",
-      location: "Building 2, Floor 3",
-      status: "online",
-      resolution: "3840x2160",
-      uptime: "99.5%",
-      brightness: 75,
-      orientation: "landscape",
-      lastUpdate: "1 hour ago",
-      group: "Meeting Rooms",
-    },
-    {
-      id: 3,
-      name: "Waiting Area",
-      location: "Reception",
-      status: "online",
-      resolution: "1920x1080",
-      uptime: "98.2%",
-      brightness: 85,
-      orientation: "landscape",
-      lastUpdate: "30 minutes ago",
-      group: "Reception",
-    },
-    {
-      id: 4,
-      name: "Digital Signage",
-      location: "Hallway B",
-      status: "offline",
-      resolution: "1920x1080",
-      uptime: "95.1%",
-      brightness: 0,
-      orientation: "portrait",
-      lastUpdate: "4 hours ago",
-      group: "Hallways",
-    },
-    {
-      id: 5,
-      name: "Meeting Room 1",
-      location: "Building 1, Floor 2",
-      status: "online",
-      resolution: "2560x1440",
-      uptime: "99.9%",
-      brightness: 70,
-      orientation: "landscape",
-      lastUpdate: "15 minutes ago",
-      group: "Meeting Rooms",
-    },
-    {
-      id: 6,
-      name: "Cafeteria Display",
-      location: "Cafeteria",
-      status: "online",
-      resolution: "1920x1080",
-      uptime: "97.8%",
-      brightness: 90,
-      orientation: "landscape",
-      lastUpdate: "45 minutes ago",
-      group: "Common Areas",
-    },
-  ])
-
+  const { user } = useAuth()
+  const { displays, loading, addDisplay, editDisplay, removeDisplay } = useDisplays(user?.uid)
+  
   const [selectedDisplay, setSelectedDisplay] = useState<Display | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
+  const [displayToLink, setDisplayToLink] = useState<{ id: string; name: string } | null>(null)
   const [filterStatus, setFilterStatus] = useState<string[]>(["online", "offline"])
 
+  const [pendingDisplayId, setPendingDisplayId] = useState<string | null>(null)
+
   const handleEditDisplay = (display: Display) => {
-    console.log("[v0] Editing display:", display)
     setSelectedDisplay(display)
     setIsModalOpen(true)
   }
 
-  const handleSaveDisplay = (updatedDisplay: Display) => {
-    console.log("[v0] Saving display:", updatedDisplay)
-    setDisplays(displays.map((d) => (d.id === updatedDisplay.id ? updatedDisplay : d)))
-    setIsModalOpen(false)
+  const handleSaveDisplay = async (updatedDisplay: Display) => {
+    try {
+      if (selectedDisplay?.id) {
+        await editDisplay(selectedDisplay.id, updatedDisplay)
+      } else {
+        await addDisplay(updatedDisplay)
+      }
+      setIsModalOpen(false)
+      setSelectedDisplay(null)
+    } catch (error) {
+      console.error("Error saving display:", error)
+    }
   }
 
-  const handleDeleteDisplay = (id: number) => {
-    console.log("[v0] Deleting display:", id)
-    setDisplays(displays.filter((d) => d.id !== id))
-    setIsModalOpen(false)
+  const handleDeleteDisplay = async (id: string) => {
+    try {
+      await removeDisplay(id)
+      setIsModalOpen(false)
+      setSelectedDisplay(null)
+    } catch (error) {
+      console.error("Error deleting display:", error)
+    }
   }
 
-  const handleAddDisplay = () => {
-    console.log("[v0] Adding new display")
-    const newDisplay: Display = {
-      id: Date.now(),
-      name: "New Display",
-      location: "Location",
+  const handleAddDisplay = async () => {
+    if (!user) {
+      console.error('User not authenticated')
+      alert('Please sign in to add a display')
+      return
+    }
+
+    console.log('Creating pending display for user:', user.uid)
+    
+    // Create a pending display with temporary name
+    const newDisplay: Partial<Display> = {
+      name: "Pending Link...",
+      location: "Not Set",
       status: "offline",
       resolution: "1920x1080",
       uptime: "0%",
       brightness: 50,
       orientation: "landscape",
-      lastUpdate: "Just now",
-      group: "New",
+      lastUpdate: new Date().toISOString(),
+      group: "Uncategorized",
     }
-    setSelectedDisplay(newDisplay)
-    setIsModalOpen(true)
+    
+    try {
+      console.log('Calling addDisplay with:', newDisplay)
+      const display = await addDisplay(newDisplay)
+      console.log('Pending display created:', display)
+      
+      setPendingDisplayId(display.id)
+      setDisplayToLink({ id: display.id, name: display.name })
+      setIsLinkDialogOpen(true)
+    } catch (error) {
+      console.error("Error adding display:", error)
+      alert('Failed to create display. Check console for details.')
+    }
+  }
+
+  const handleDeviceLinkSuccess = async (deviceId: string) => {
+    if (!user || !pendingDisplayId) return
+
+    try {
+      // Update display name after successful linking
+      await editDisplay(pendingDisplayId, { name: "New Display" })
+      setPendingDisplayId(null)
+      setIsLinkDialogOpen(false)
+      setDisplayToLink(null)
+    } catch (error) {
+      console.error("Error updating display after link:", error)
+    }
+  }
+
+  const handleLinkDialogClose = async () => {
+    // If closing without successful link, delete pending display
+    if (pendingDisplayId) {
+      try {
+        await removeDisplay(pendingDisplayId)
+        setPendingDisplayId(null)
+      } catch (error) {
+        console.error("Error removing pending display:", error)
+      }
+    }
+    setIsLinkDialogOpen(false)
+    setDisplayToLink(null)
+  }
+
+  const handleLinkDevice = (display: Display) => {
+    setDisplayToLink({ id: display.id, name: display.name })
+    setIsLinkDialogOpen(true)
   }
 
   const toggleFilter = (status: string) => {
-    console.log("[v0] Toggling filter:", status)
     setFilterStatus((prev) => (prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]))
   }
 
   const filteredDisplays = displays.filter((d) => filterStatus.includes(d.status))
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading displays...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -179,22 +171,60 @@ export default function DisplaysPage() {
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            <Button onClick={handleAddDisplay} className="gap-2">
+            <Button 
+              onClick={handleAddDisplay} 
+              className="gap-2 border-2 border-primary hover:border-accent hover:shadow-lg transition-all"
+            >
               <Plus className="w-4 h-4" />
               <span className="hidden sm:inline">Add Display</span>
             </Button>
           </div>
         </div>
 
-        <DisplayList displays={filteredDisplays} onEdit={handleEditDisplay} onDelete={handleDeleteDisplay} />
+        {displays.length === 0 ? (
+          <div className="text-center py-12 border border-dashed border-border rounded-lg">
+            <LinkIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-lg font-semibold mb-2">No Displays Yet</h3>
+            <p className="text-muted-foreground mb-6">Add your first display to get started</p>
+            <Button onClick={handleAddDisplay}>
+              <Plus className="w-4 h-4 mr-2" />
+              Add Your First Display
+            </Button>
+          </div>
+        ) : (
+          <DisplayList 
+            displays={filteredDisplays} 
+            onEdit={handleEditDisplay} 
+            onDelete={(id) => handleDeleteDisplay(id.toString())}
+            onLinkDevice={handleLinkDevice}
+          />
+        )}
 
         {selectedDisplay && (
           <DisplayDetailsModal
             display={selectedDisplay}
             isOpen={isModalOpen}
-            onClose={() => setIsModalOpen(false)}
+            onClose={() => {
+              setIsModalOpen(false)
+              setSelectedDisplay(null)
+            }}
             onSave={handleSaveDisplay}
-            onDelete={handleDeleteDisplay}
+            onDelete={(id) => handleDeleteDisplay(id.toString())}
+          />
+        )}
+
+        {displayToLink && user && (
+          <DeviceLinkDialog
+            open={isLinkDialogOpen}
+            onOpenChange={(open) => {
+              if (!open) {
+                handleLinkDialogClose()
+              }
+            }}
+            userId={user.uid}
+            displayId={displayToLink.id}
+            displayName={displayToLink.name}
+            onSuccess={handleDeviceLinkSuccess}
           />
         )}
       </main>

@@ -8,50 +8,8 @@ interface UptimeTrackerProps {
 }
 
 export function UptimeTracker({ timeRange }: UptimeTrackerProps) {
-  const displayUptime = [
-    {
-      name: "Lobby Display",
-      uptime: 99.8,
-      status: "online",
-      lastIncident: "3 days ago",
-      incidents: 1,
-    },
-    {
-      name: "Conference Room A",
-      uptime: 99.5,
-      status: "online",
-      lastIncident: "5 days ago",
-      incidents: 2,
-    },
-    {
-      name: "Waiting Area",
-      uptime: 98.2,
-      status: "online",
-      lastIncident: "1 day ago",
-      incidents: 3,
-    },
-    {
-      name: "Digital Signage",
-      uptime: 95.1,
-      status: "offline",
-      lastIncident: "4 hours ago",
-      incidents: 5,
-    },
-    {
-      name: "Meeting Room 1",
-      uptime: 99.9,
-      status: "online",
-      lastIncident: "7 days ago",
-      incidents: 1,
-    },
-    {
-      name: "Cafeteria Display",
-      uptime: 97.8,
-      status: "online",
-      lastIncident: "2 days ago",
-      incidents: 2,
-    },
-  ]
+  // TODO: Fetch uptime data from Firebase
+  const displayUptime: any[] = []
 
   const getUptimeColor = (uptime: number) => {
     if (uptime >= 99) return "text-green-600 dark:text-green-400"

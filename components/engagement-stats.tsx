@@ -8,43 +8,8 @@ interface EngagementStatsProps {
 }
 
 export function EngagementStats({ timeRange }: EngagementStatsProps) {
-  const contentEngagement = [
-    {
-      name: "Welcome Banner.jpg",
-      views: 3420,
-      avgTime: "2m 15s",
-      engagement: 78,
-      trend: "+12%",
-    },
-    {
-      name: "Product Demo.mp4",
-      views: 2890,
-      avgTime: "5m 42s",
-      engagement: 85,
-      trend: "+18%",
-    },
-    {
-      name: "Event Poster.jpg",
-      views: 1950,
-      avgTime: "1m 30s",
-      engagement: 62,
-      trend: "+5%",
-    },
-    {
-      name: "Menu Board.jpg",
-      views: 2340,
-      avgTime: "3m 20s",
-      engagement: 71,
-      trend: "+9%",
-    },
-    {
-      name: "Announcement.mp4",
-      views: 1680,
-      avgTime: "4m 10s",
-      engagement: 68,
-      trend: "+3%",
-    },
-  ]
+  // TODO: Fetch engagement data from Firebase
+  const contentEngagement: any[] = []
 
   return (
     <div className="space-y-4">

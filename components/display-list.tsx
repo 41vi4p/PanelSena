@@ -3,34 +3,24 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Monitor, Power, Settings, Trash2 } from "lucide-react"
-
-interface Display {
-  id: number
-  name: string
-  location: string
-  status: "online" | "offline"
-  resolution: string
-  uptime: string
-  brightness: number
-  orientation: "landscape" | "portrait"
-  lastUpdate: string
-  group: string
-}
+import { Monitor, Power, Settings, Trash2, Link as LinkIcon } from "lucide-react"
+import { Display } from "@/lib/types"
 
 interface DisplayListProps {
   displays: Display[]
   onEdit: (display: Display) => void
-  onDelete: (id: number) => void
+  onDelete: (id: string) => void
+  onLinkDevice?: (display: Display) => void
 }
 
-export function DisplayList({ displays, onEdit, onDelete }: DisplayListProps) {
+export function DisplayList({ displays, onEdit, onDelete, onLinkDevice }: DisplayListProps) {
   const groupedDisplays = displays.reduce(
     (acc, display) => {
-      if (!acc[display.group]) {
-        acc[display.group] = []
+      const group = display.group || "Uncategorized"
+      if (!acc[group]) {
+        acc[group] = []
       }
-      acc[display.group].push(display)
+      acc[group].push(display)
       return acc
     },
     {} as Record<string, Display[]>,
@@ -74,7 +64,19 @@ export function DisplayList({ displays, onEdit, onDelete }: DisplayListProps) {
                       </div>
                     </div>
 
-                    <div className="flex items-center gap-2 flex-shrink-0">
+                    <div className="flex items-center gap-2 shrink-0">
+                      {onLinkDevice && display.status === "offline" && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="gap-2"
+                          onClick={() => onLinkDevice(display)}
+                          title="Link Raspberry Pi Device"
+                        >
+                          <LinkIcon className="w-4 h-4" />
+                          <span className="hidden md:inline">Link Device</span>
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"

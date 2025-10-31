@@ -22,7 +22,7 @@ interface DeviceLinkDialogProps {
   userId: string
   displayId: string
   displayName: string
-  onSuccess?: () => void
+  onSuccess?: (deviceId: string) => void // Pass deviceId to success callback
 }
 
 export function DeviceLinkDialog({
@@ -50,14 +50,14 @@ export function DeviceLinkDialog({
 
       if (result.success) {
         setSuccess(true)
-        setDeviceId("")
-        setDeviceKey("")
-
+        
         setTimeout(() => {
-          onSuccess?.()
+          onSuccess?.(deviceId)
+          setDeviceId("")
+          setDeviceKey("")
           onOpenChange(false)
           setSuccess(false)
-        }, 2000)
+        }, 1500)
       } else {
         setError(result.error || "Failed to link device")
       }

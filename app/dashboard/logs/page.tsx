@@ -22,79 +22,9 @@ export default function LogsPage() {
   const [filterType, setFilterType] = useState<"all" | "info" | "warning" | "error" | "success">("all")
 
   useEffect(() => {
-    // Mock logs data
-    const mockLogs: LogEntry[] = [
-      {
-        id: "1",
-        timestamp: new Date(Date.now() - 5 * 60000).toISOString(),
-        type: "success",
-        action: "Display Updated",
-        description: "Display 'Main Hall' brightness set to 80%",
-        user: "john@example.com",
-        display: "Main Hall",
-      },
-      {
-        id: "2",
-        timestamp: new Date(Date.now() - 15 * 60000).toISOString(),
-        type: "info",
-        action: "Content Scheduled",
-        description: "New content scheduled for 'Lobby Display' at 2:00 PM",
-        user: "sarah@example.com",
-        display: "Lobby Display",
-      },
-      {
-        id: "3",
-        timestamp: new Date(Date.now() - 30 * 60000).toISOString(),
-        type: "warning",
-        action: "Low Battery",
-        description: "Display 'Entrance' battery level at 15%",
-        user: "system",
-        display: "Entrance",
-      },
-      {
-        id: "4",
-        timestamp: new Date(Date.now() - 1 * 3600000).toISOString(),
-        type: "error",
-        action: "Connection Lost",
-        description: "Lost connection to display 'Conference Room'",
-        user: "system",
-        display: "Conference Room",
-      },
-      {
-        id: "5",
-        timestamp: new Date(Date.now() - 2 * 3600000).toISOString(),
-        type: "success",
-        action: "Content Uploaded",
-        description: "New promotional video uploaded successfully",
-        user: "admin@example.com",
-      },
-      {
-        id: "6",
-        timestamp: new Date(Date.now() - 3 * 3600000).toISOString(),
-        type: "info",
-        action: "User Login",
-        description: "User logged in from 192.168.1.100",
-        user: "john@example.com",
-      },
-      {
-        id: "7",
-        timestamp: new Date(Date.now() - 4 * 3600000).toISOString(),
-        type: "success",
-        action: "Schedule Executed",
-        description: "Morning schedule executed on all displays",
-        user: "system",
-      },
-      {
-        id: "8",
-        timestamp: new Date(Date.now() - 5 * 3600000).toISOString(),
-        type: "warning",
-        action: "High Temperature",
-        description: "Display 'Outdoor' temperature exceeds safe limit",
-        user: "system",
-        display: "Outdoor",
-      },
-    ]
-    setLogs(mockLogs)
+    // TODO: Fetch logs from Firebase
+    // For now, logs are empty
+    setLogs([])
   }, [])
 
   const filteredLogs = logs.filter((log) => {

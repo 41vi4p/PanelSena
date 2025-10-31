@@ -19,23 +19,9 @@ interface AnalyticsChartsProps {
 }
 
 export function AnalyticsCharts({ timeRange }: AnalyticsChartsProps) {
-  const viewsData = [
-    { date: "Oct 23", views: 2400, engagement: 65 },
-    { date: "Oct 24", views: 3210, engagement: 72 },
-    { date: "Oct 25", views: 2290, engagement: 58 },
-    { date: "Oct 26", views: 2000, engagement: 61 },
-    { date: "Oct 27", views: 2181, engagement: 68 },
-    { date: "Oct 28", views: 2500, engagement: 75 },
-    { date: "Oct 29", views: 2100, engagement: 70 },
-  ]
-
-  const displayPerformanceData = [
-    { name: "Lobby Display", uptime: 99.8, views: 3200 },
-    { name: "Conference Room A", uptime: 99.5, views: 2800 },
-    { name: "Waiting Area", uptime: 98.2, views: 2100 },
-    { name: "Meeting Room 1", uptime: 99.9, views: 1900 },
-    { name: "Cafeteria Display", uptime: 97.8, views: 2400 },
-  ]
+  // TODO: Fetch analytics data from Firebase
+  const viewsData: any[] = []
+  const displayPerformanceData: any[] = []
 
   return (
     <div className="space-y-6">

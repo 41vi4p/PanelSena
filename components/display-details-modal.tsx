@@ -15,26 +15,14 @@ import { Label } from "@/components/ui/label"
 import { Slider } from "@/components/ui/slider"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-
-interface Display {
-  id: number
-  name: string
-  location: string
-  status: "online" | "offline"
-  resolution: string
-  uptime: string
-  brightness: number
-  orientation: "landscape" | "portrait"
-  lastUpdate: string
-  group: string
-}
+import { Display } from "@/lib/types"
 
 interface DisplayDetailsModalProps {
   display: Display
   isOpen: boolean
   onClose: () => void
   onSave: (display: Display) => void
-  onDelete: (id: number) => void
+  onDelete: (id: string) => void
 }
 
 export function DisplayDetailsModal({ display, isOpen, onClose, onSave, onDelete }: DisplayDetailsModalProps) {

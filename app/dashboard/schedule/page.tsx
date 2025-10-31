@@ -1,18 +1,20 @@
 "use client"
+
+import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Calendar, Clock, Edit, Trash2, Plus } from "lucide-react"
 
-const schedules = [
-  { id: 1, name: "Morning Announcements", time: "08:00 AM", days: "Mon-Fri", displays: 8, status: "active" },
-  { id: 2, name: "Lunch Menu", time: "11:30 AM", days: "Mon-Fri", displays: 5, status: "active" },
-  { id: 3, name: "Evening Promotions", time: "05:00 PM", days: "Daily", displays: 12, status: "active" },
-  { id: 4, name: "Night Standby", time: "06:00 PM", days: "Daily", displays: 15, status: "active" },
-  { id: 5, name: "Weekend Special", time: "10:00 AM", days: "Sat-Sun", displays: 10, status: "inactive" },
-]
-
 export default function SchedulePage() {
+  const [schedules, setSchedules] = useState<any[]>([])
+
+  // TODO: Fetch schedules from Firebase using useSchedules hook
+  useEffect(() => {
+    // Schedules will come from Firebase
+    setSchedules([])
+  }, [])
+
   return (
     <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
       {/* Header */}

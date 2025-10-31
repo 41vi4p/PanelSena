@@ -4,31 +4,32 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Monitor, Activity, AlertCircle, TrendingUp } from "lucide-react"
 
 export function MetricsCards() {
+  // TODO: Fetch metrics from Firebase
   const metrics = [
     {
       title: "Active Displays",
-      value: "12",
+      value: "0",
       description: "Online and running",
       icon: Monitor,
       color: "text-blue-500",
     },
     {
       title: "Content Updates",
-      value: "24",
+      value: "0",
       description: "This week",
       icon: TrendingUp,
       color: "text-green-500",
     },
     {
       title: "System Health",
-      value: "98%",
+      value: "0%",
       description: "Uptime",
       icon: Activity,
       color: "text-emerald-500",
     },
     {
       title: "Alerts",
-      value: "2",
+      value: "0",
       description: "Require attention",
       icon: AlertCircle,
       color: "text-amber-500",

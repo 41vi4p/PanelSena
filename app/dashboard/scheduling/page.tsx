@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ScheduleCalendar } from "@/components/schedule-calendar"
 import { ScheduleForm } from "@/components/schedule-form"
 import { ScheduleList } from "@/components/schedule-list"
@@ -29,61 +29,16 @@ interface Schedule {
 }
 
 export default function SchedulingPage() {
-  const [schedules, setSchedules] = useState<Schedule[]>([
-    {
-      id: 1,
-      name: "Morning Welcome",
-      content: "Welcome Banner.jpg",
-      displays: ["Lobby Display", "Waiting Area"],
-      startDate: "2025-10-29",
-      endDate: "2025-12-31",
-      startTime: "08:00",
-      endTime: "12:00",
-      recurring: "daily",
-      status: "active",
-    },
-    {
-      id: 2,
-      name: "Lunch Menu",
-      content: "Menu Board.jpg",
-      displays: ["Cafeteria Display"],
-      startDate: "2025-10-29",
-      endDate: "2025-12-31",
-      startTime: "11:30",
-      endTime: "13:30",
-      recurring: "daily",
-      status: "active",
-    },
-    {
-      id: 3,
-      name: "Event Announcement",
-      content: "Event Poster.jpg",
-      displays: ["Conference Room A", "Meeting Room 1"],
-      startDate: "2025-11-01",
-      endDate: "2025-11-15",
-      startTime: "09:00",
-      endTime: "17:00",
-      recurring: "none",
-      status: "scheduled",
-    },
-    {
-      id: 4,
-      name: "Product Demo",
-      content: "Product Demo.mp4",
-      displays: ["Lobby Display"],
-      startDate: "2025-10-29",
-      endDate: "2025-12-31",
-      startTime: "14:00",
-      endTime: "14:30",
-      recurring: "weekly",
-      daysOfWeek: ["Monday", "Wednesday", "Friday"],
-      status: "active",
-    },
-  ])
-
+  const [schedules, setSchedules] = useState<Schedule[]>([])
   const [showForm, setShowForm] = useState(false)
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null)
   const [filterStatus, setFilterStatus] = useState<string[]>(["active", "scheduled", "completed"])
+
+  // TODO: Fetch schedules from Firebase using useSchedules hook
+  useEffect(() => {
+    // Schedules will come from Firebase
+    setSchedules([])
+  }, [])
 
   const handleAddSchedule = (newSchedule: Omit<Schedule, "id">) => {
     console.log("[v0] Adding new schedule:", newSchedule)

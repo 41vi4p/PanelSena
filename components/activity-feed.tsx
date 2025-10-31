@@ -4,40 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Upload, AlertTriangle, CheckCircle, Clock } from "lucide-react"
 
 export function ActivityFeed() {
-  const activities = [
-    {
-      id: 1,
-      type: "upload",
-      title: "Content uploaded",
-      description: "Lobby Display",
-      time: "2 hours ago",
-      icon: Upload,
-    },
-    {
-      id: 2,
-      type: "alert",
-      title: "Display offline",
-      description: "Hallway B - Signage",
-      time: "4 hours ago",
-      icon: AlertTriangle,
-    },
-    {
-      id: 3,
-      type: "success",
-      title: "Schedule updated",
-      description: "Conference Room A",
-      time: "6 hours ago",
-      icon: CheckCircle,
-    },
-    {
-      id: 4,
-      type: "pending",
-      title: "Scheduled update",
-      description: "All displays",
-      time: "In 2 hours",
-      icon: Clock,
-    },
-  ]
+  // TODO: Fetch activities from Firebase
+  const activities: any[] = []
 
   const getIconColor = (type: string) => {
     switch (type) {

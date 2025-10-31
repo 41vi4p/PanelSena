@@ -40,35 +40,20 @@ export function ScheduleForm({ schedule, onSave, onClose }: ScheduleFormProps) {
     schedule || {
       name: "",
       content: "",
-      displays: [],
+      displays: [] as string[],
       startDate: "",
       endDate: "",
       startTime: "09:00",
       endTime: "17:00",
       recurring: "none" as const,
-      daysOfWeek: [],
+      daysOfWeek: [] as string[],
       status: "scheduled" as const,
     },
   )
 
-  const contentOptions = [
-    "Welcome Banner.jpg",
-    "Product Demo.mp4",
-    "Company Info.pdf",
-    "Event Poster.jpg",
-    "Announcement.mp4",
-    "Menu Board.jpg",
-  ]
-
-  const displayOptions = [
-    "Lobby Display",
-    "Conference Room A",
-    "Waiting Area",
-    "Digital Signage",
-    "Meeting Room 1",
-    "Cafeteria Display",
-  ]
-
+  // TODO: Fetch content and display options from Firebase
+  const contentOptions: string[] = []
+  const displayOptions: string[] = []
   const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
 
   const handleSave = () => {

@@ -1,6 +1,6 @@
 {
-  "user_id": "your-firebase-user-id-here",
-  "display_id": "your-display-id-here",
+  "device_id": "",
+  "device_key": "",
   "display_name": "Raspberry Pi Display - Main",
   "database_url": "https://your-project-id.firebaseio.com",
   "storage_bucket": "your-project-id.appspot.com",

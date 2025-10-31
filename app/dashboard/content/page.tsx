@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ContentLibrary } from "@/components/content-library"
 import { ContentUpload } from "@/components/content-upload"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -17,63 +17,14 @@ interface ContentItem {
 }
 
 export default function ContentPage() {
-  const [contentItems, setContentItems] = useState<ContentItem[]>([
-    {
-      id: 1,
-      name: "Welcome Banner.jpg",
-      type: "image",
-      size: "2.4 MB",
-      uploadDate: "2 days ago",
-      category: "Marketing",
-      thumbnail: "/welcome-banner.png",
-    },
-    {
-      id: 2,
-      name: "Product Demo.mp4",
-      type: "video",
-      size: "45.2 MB",
-      uploadDate: "1 week ago",
-      category: "Promotions",
-      thumbnail: "/product-demo-video.png",
-    },
-    {
-      id: 3,
-      name: "Company Info.pdf",
-      type: "document",
-      size: "1.8 MB",
-      uploadDate: "3 days ago",
-      category: "Information",
-    },
-    {
-      id: 4,
-      name: "Event Poster.jpg",
-      type: "image",
-      size: "3.1 MB",
-      uploadDate: "5 days ago",
-      category: "Events",
-      thumbnail: "/event-poster.png",
-    },
-    {
-      id: 5,
-      name: "Announcement.mp4",
-      type: "video",
-      size: "28.5 MB",
-      uploadDate: "1 week ago",
-      category: "Announcements",
-      thumbnail: "/announcement-video.jpg",
-    },
-    {
-      id: 6,
-      name: "Menu Board.jpg",
-      type: "image",
-      size: "1.9 MB",
-      uploadDate: "4 days ago",
-      category: "Menus",
-      thumbnail: "/menu-board.jpg",
-    },
-  ])
-
+  const [contentItems, setContentItems] = useState<ContentItem[]>([])
   const [activeTab, setActiveTab] = useState("library")
+
+  // TODO: Fetch content from Firebase using useContent hook
+  useEffect(() => {
+    // Content will come from Firebase
+    setContentItems([])
+  }, [])
 
   const handleUpload = (newContent: ContentItem) => {
     setContentItems([...contentItems, newContent])

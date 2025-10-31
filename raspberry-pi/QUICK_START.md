@@ -2,26 +2,32 @@
 
 ## 🚀 Quick Setup (5 Minutes)
 
-### Step 1: Generate Credentials (1 min)
+### Step 1: Run Setup Wizard (2 min)
 
 ```bash
 cd raspberry-pi/
-python3 generate_device_credentials.py
+python3 setup_device.py
 ```
 
-**Output:**
+The wizard will guide you through:
+- ✅ Generating unique Device ID and Key
+- ✅ Configuring display name
+- ✅ Setting up Firebase credentials
+- ✅ Creating config.json automatically
+
+**You'll get output like:**
 ```
-Device ID:  DEVICE_20251031143055_A7K9
+Device ID:  DEVICE_20251031143055_A7K9F2
 Device Key: k3mN9pQ2rT5vW8xY1zB4cD6eF9gH2jK5
 
-Save to config.json? (y): y
-✓ Saved!
+✨ Setup Complete!
+Credentials saved to: device_credentials_20251031_143055.txt
 ```
 
 ### Step 2: Copy to Raspberry Pi (1 min)
 
 ```bash
-# Copy config and service account key
+# Copy config and service account key to your Pi
 scp config.json pi@<raspberry-pi-ip>:~/panelsena/
 scp serviceAccountKey.json pi@<raspberry-pi-ip>:~/panelsena/
 ```
@@ -29,11 +35,13 @@ scp serviceAccountKey.json pi@<raspberry-pi-ip>:~/panelsena/
 ### Step 3: Start Player (1 min)
 
 ```bash
-# SSH into Pi
+# SSH into your Raspberry Pi
 ssh pi@<raspberry-pi-ip>
 
-# Run player
+# Navigate to directory
 cd ~/panelsena
+
+# Run the player
 python3 player.py
 ```
 
@@ -41,13 +49,13 @@ python3 player.py
 ```
 [INFO] Device not linked yet
 Please link this device in the dashboard:
-  Device ID:  DEVICE_20251031143055_A7K9
+  Device ID:  DEVICE_20251031143055_A7K9F2
   Device Key: k3mN9pQ2rT5vW8xY1zB4cD6eF9gH2jK5
 
 Waiting for device to be linked...
 ```
 
-### Step 4: Link in Dashboard (2 min)
+### Step 4: Link in Dashboard (1 min)
 
 1. Open PanelSena dashboard in browser
 2. Go to **Displays** page
