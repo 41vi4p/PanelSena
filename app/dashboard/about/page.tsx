@@ -130,7 +130,7 @@ export default function AboutPage() {
               </div>
               <div>
                 <h1 className="text-3xl sm:text-4xl font-bold text-foreground">PanelSena</h1>
-                <p className="text-muted-foreground">Digital Signage Management System</p>
+                <p className="text-muted-foreground">Your Army of Displays</p>
               </div>
             </div>
             <p className="text-lg text-muted-foreground max-w-3xl">

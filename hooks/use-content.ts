@@ -5,6 +5,7 @@ import {
   updateContent,
   deleteContent,
   subscribeToContent,
+  createActivity,
 } from '@/lib/firestore'
 import { uploadFile, deleteFile, UploadProgress } from '@/lib/storage'
 
@@ -65,6 +66,14 @@ export function useContent(userId: string | undefined) {
 
       const newContent = await createContent(userId, contentData)
 
+      // Log upload activity
+      await createActivity(userId, {
+        type: 'content',
+        action: 'Content Uploaded',
+        description: `Uploaded ${type} "${file.name}"`,
+        metadata: { contentName: file.name, contentType: type, category }
+      })
+
       // Clear upload progress
       setUploadProgress((prev) => {
         const newProgress = { ...prev }
@@ -76,20 +85,48 @@ export function useContent(userId: string | undefined) {
     } catch (err) {
       console.error('Error uploading content:', err)
       setError('Failed to upload content')
+      
+      // Log error
+      await createActivity(userId, {
+        type: 'system',
+        action: 'Content Upload Error',
+        description: `Failed to upload ${type}: ${err}`,
+        metadata: { error: String(err), fileName: file.name }
+      }).catch(console.error)
+      
       throw err
     }
   }
 
   const removeContent = async (contentItem: ContentItem) => {
+    if (!userId) throw new Error('User not authenticated')
+    
     try {
       // Delete file from storage
       await deleteFile(contentItem.storageRef)
 
       // Delete metadata from Firestore
       await deleteContent(contentItem.id)
+      
+      // Log deletion activity
+      await createActivity(userId, {
+        type: 'content',
+        action: 'Content Deleted',
+        description: `Deleted ${contentItem.type} "${contentItem.name}"`,
+        metadata: { contentName: contentItem.name, contentType: contentItem.type }
+      })
     } catch (err) {
       console.error('Error deleting content:', err)
       setError('Failed to delete content')
+      
+      // Log error
+      await createActivity(userId, {
+        type: 'system',
+        action: 'Content Delete Error',
+        description: `Failed to delete content: ${err}`,
+        metadata: { error: String(err), contentName: contentItem.name }
+      }).catch(console.error)
+      
       throw err
     }
   }

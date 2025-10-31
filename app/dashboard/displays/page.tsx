@@ -14,11 +14,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { useAuth } from "@/hooks/use-auth"
 import { useDisplays } from "@/hooks/use-displays"
+import { useActivities } from "@/hooks/use-activities"
 import { Display } from "@/lib/types"
 
 export default function DisplaysPage() {
   const { user } = useAuth()
   const { displays, loading, addDisplay, editDisplay, removeDisplay } = useDisplays(user?.uid)
+  const { logActivity } = useActivities(user?.uid)
   
   const [selectedDisplay, setSelectedDisplay] = useState<Display | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -37,23 +39,54 @@ export default function DisplaysPage() {
     try {
       if (selectedDisplay?.id) {
         await editDisplay(selectedDisplay.id, updatedDisplay)
+        await logActivity(
+          'display',
+          'Display Updated',
+          `Updated display "${updatedDisplay.name}"`,
+          { displayName: updatedDisplay.name, displayId: selectedDisplay.id }
+        )
       } else {
-        await addDisplay(updatedDisplay)
+        const newDisplay = await addDisplay(updatedDisplay)
+        await logActivity(
+          'display',
+          'Display Created',
+          `Created new display "${updatedDisplay.name}"`,
+          { displayName: updatedDisplay.name, displayId: newDisplay.id }
+        )
       }
       setIsModalOpen(false)
       setSelectedDisplay(null)
     } catch (error) {
       console.error("Error saving display:", error)
+      await logActivity(
+        'system',
+        'Display Error',
+        `Failed to save display: ${error}`,
+        { error: String(error) }
+      )
     }
   }
 
   const handleDeleteDisplay = async (id: string) => {
     try {
+      const display = displays.find(d => d.id === id)
       await removeDisplay(id)
+      await logActivity(
+        'display',
+        'Display Deleted',
+        `Deleted display "${display?.name || id}"`,
+        { displayName: display?.name, displayId: id }
+      )
       setIsModalOpen(false)
       setSelectedDisplay(null)
     } catch (error) {
       console.error("Error deleting display:", error)
+      await logActivity(
+        'system',
+        'Display Error',
+        `Failed to delete display: ${error}`,
+        { error: String(error) }
+      )
     }
   }
 
@@ -99,11 +132,23 @@ export default function DisplaysPage() {
     try {
       // Update display name after successful linking
       await editDisplay(pendingDisplayId, { name: "New Display" })
+      await logActivity(
+        'display',
+        'Device Linked Successfully',
+        `Linked device ${deviceId} to display`,
+        { deviceId, displayId: pendingDisplayId }
+      )
       setPendingDisplayId(null)
       setIsLinkDialogOpen(false)
       setDisplayToLink(null)
     } catch (error) {
       console.error("Error updating display after link:", error)
+      await logActivity(
+        'system',
+        'Device Link Error',
+        `Failed to link device: ${error}`,
+        { error: String(error), deviceId }
+      )
     }
   }
 
