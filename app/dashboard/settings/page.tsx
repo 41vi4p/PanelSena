@@ -5,15 +5,18 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Bell, Lock, Users, Palette } from "lucide-react"
+import { Switch } from "@/components/ui/switch"
+import { Bell, Lock, Users, Palette, Sun, Moon } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { doc, updateDoc } from "firebase/firestore"
 import { db } from "@/lib/firebase"
 import { useToast } from "@/hooks/use-toast"
+import { useTheme } from "@/components/theme-provider"
 
 export default function SettingsPage() {
   const { user, userProfile } = useAuth()
   const { toast } = useToast()
+  const { theme, toggleTheme } = useTheme()
   const [email, setEmail] = useState("")
   const [userName, setUserName] = useState("")
   const [companyName, setCompanyName] = useState("")
@@ -134,21 +137,21 @@ export default function SettingsPage() {
               <p className="font-medium text-foreground">Display Alerts</p>
               <p className="text-sm text-muted-foreground">Get notified when displays go offline</p>
             </div>
-            <input type="checkbox" defaultChecked className="w-4 h-4" />
+            <Switch defaultChecked />
           </div>
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-foreground">Performance Reports</p>
               <p className="text-sm text-muted-foreground">Weekly performance summaries</p>
             </div>
-            <input type="checkbox" defaultChecked className="w-4 h-4" />
+            <Switch defaultChecked />
           </div>
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium text-foreground">System Updates</p>
               <p className="text-sm text-muted-foreground">Notifications about system updates</p>
             </div>
-            <input type="checkbox" className="w-4 h-4" />
+            <Switch />
           </div>
         </CardContent>
       </Card>
@@ -182,13 +185,21 @@ export default function SettingsPage() {
           <CardDescription>Customize your dashboard appearance</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Theme</Label>
-            <select className="w-full px-3 py-2 bg-input border border-border rounded-md text-foreground">
-              <option>Dark Mode</option>
-              <option>Light Mode</option>
-              <option>Auto</option>
-            </select>
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label className="text-base">Theme</Label>
+              <p className="text-sm text-muted-foreground">
+                {theme === "dark" ? "Dark mode" : "Light mode"}
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Sun className="h-4 w-4 text-muted-foreground" />
+              <Switch 
+                checked={theme === "dark"} 
+                onCheckedChange={toggleTheme}
+              />
+              <Moon className="h-4 w-4 text-muted-foreground" />
+            </div>
           </div>
         </CardContent>
       </Card>

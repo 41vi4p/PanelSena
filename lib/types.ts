@@ -71,3 +71,54 @@ export interface Analytics {
   timestamp: string
   date: string
 }
+
+// Live playback types
+export interface LivePlaybackStatus {
+  displayId: string
+  displayName: string
+  status: "online" | "offline" | "playing" | "paused" | "error"
+  currentContent: {
+    id: string
+    name: string
+    type: "image" | "video" | "document"
+    url: string
+    startedAt: number
+    duration?: number
+  } | null
+  schedule: {
+    id: string
+    name: string
+    contentQueue: string[]
+    currentIndex: number
+  } | null
+  lastHeartbeat: number
+  volume: number
+  errorMessage?: string
+}
+
+// Device registration types
+export interface DeviceRegistration {
+  displayId: string
+  userId: string
+  deviceToken: string
+  lastSeen: number
+  ipAddress: string
+  macAddress: string
+  osVersion: string
+  appVersion: string
+}
+
+// Playback command types
+export interface PlaybackCommand {
+  commandId: string
+  displayId: string
+  type: "play" | "pause" | "stop" | "skip" | "volume" | "restart"
+  payload?: {
+    contentId?: string
+    volume?: number
+    scheduleId?: string
+  }
+  timestamp: number
+  status: "pending" | "executed" | "failed"
+  result?: string
+}

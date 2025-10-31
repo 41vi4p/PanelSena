@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Monitor, BarChart3, FileText, Clock, Settings, HelpCircle, Menu, Activity, ChevronLeft, ChevronRight } from "lucide-react"
+import { Monitor, BarChart3, FileText, Clock, Settings, HelpCircle, Menu, Activity, ChevronLeft, ChevronRight, Radio } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 interface SidebarProps {
@@ -17,6 +17,7 @@ const menuItems = [
   { href: "/dashboard/displays", label: "Displays", icon: BarChart3 },
   { href: "/dashboard/content", label: "Content", icon: FileText },
   { href: "/dashboard/schedule", label: "Schedule", icon: Clock },
+  { href: "/dashboard/live-control", label: "Live Control", icon: Radio },
   { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/logs", label: "Logs", icon: Activity },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },

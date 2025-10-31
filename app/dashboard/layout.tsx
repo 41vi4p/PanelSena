@@ -8,6 +8,7 @@ import Sidebar from "@/components/sidebar"
 import TopBar from "@/components/top-bar"
 import BottomNav from "@/components/bottom-nav"
 import { ThemeProvider } from "@/components/theme-provider"
+import { Toaster } from "@/components/ui/toaster"
 import { useAuth } from "@/hooks/use-auth"
 
 export default function DashboardLayout({
@@ -61,6 +62,7 @@ export default function DashboardLayout({
           <BottomNav />
         </div>
       </div>
+      <Toaster />
     </ThemeProvider>
   )
 }

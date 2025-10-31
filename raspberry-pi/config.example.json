@@ -1,0 +1,8 @@
+{
+  "user_id": "your-firebase-user-id-here",
+  "display_id": "your-display-id-here",
+  "display_name": "Raspberry Pi Display - Main",
+  "database_url": "https://your-project-id.firebaseio.com",
+  "storage_bucket": "your-project-id.appspot.com",
+  "service_account_path": "serviceAccountKey.json"
+}

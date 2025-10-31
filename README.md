@@ -30,6 +30,16 @@ A modern, cloud-based display management system built with Next.js, TypeScript, 
 - Multiple displays and content per schedule
 - Schedule status management
 
+### Live Playback Control (NEW!)
+- Real-time display monitoring and control
+- Remote playback management (play, pause, stop, skip)
+- Volume control
+- Live status updates with heartbeat monitoring
+- Schedule execution tracking
+- Raspberry Pi player integration
+- Command queue management
+- Error reporting and diagnostics
+
 ### Analytics & Monitoring
 - Real-time activity feed
 - Performance metrics
@@ -52,6 +62,7 @@ A modern, cloud-based display management system built with Next.js, TypeScript, 
 - **Backend**: Firebase
   - Authentication
   - Firestore Database
+  - Realtime Database
   - Cloud Storage
 - **State Management**: React Hooks
 - **Icons**: Lucide React
@@ -99,6 +110,7 @@ NEXT_PUBLIC_FIREBASE_PROJECT_ID=your_project_id
 NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=your_storage_bucket
 NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
 NEXT_PUBLIC_FIREBASE_APP_ID=your_app_id
+NEXT_PUBLIC_FIREBASE_DATABASE_URL=your_database_url
 ```
 
 5. Run the development server:
@@ -222,13 +234,47 @@ System automatically tracks metrics like display uptime, content views, and user
 4. Push to the branch
 5. Open a Pull Request
 
+## Raspberry Pi Player
+
+PanelSena includes a Python-based player for Raspberry Pi devices that connects to the cloud and plays scheduled content. Features:
+- Firebase Realtime Database integration
+- Automatic content downloading from Firebase Storage
+- VLC-based media playback
+- Remote control from web dashboard
+- Heartbeat monitoring
+- Auto-start on boot with systemd
+
+**Quick Start**: [raspberry-pi/QUICK_START.md](raspberry-pi/QUICK_START.md) (5-minute setup)
+**Full Setup**: [raspberry-pi/README.md](raspberry-pi/README.md)
+
+## Documentation
+
+Comprehensive documentation is available in the `docs/` folder:
+
+### Getting Started
+- **[Quick Start Guide](raspberry-pi/QUICK_START.md)** - 5-minute Raspberry Pi setup
+- **[Firebase Setup](FIREBASE_SETUP.md)** - Firebase configuration guide
+
+### Features & Implementation
+- **[Live Control System](docs/LIVE_CONTROL_SETUP.md)** - Real-time playback control guide
+- **[Device Authentication](docs/DEVICE_AUTHENTICATION.md)** - Device-based auth system
+- **[Implementation Summary](docs/IMPLEMENTATION_SUMMARY.md)** - Technical details
+
+### Raspberry Pi
+- **[Raspberry Pi Setup](raspberry-pi/README.md)** - Complete setup guide
+- **[Quick Start](raspberry-pi/QUICK_START.md)** - Rapid deployment
+
+### Browse All
+- **[Documentation Index](docs/README.md)** - Complete documentation overview
+
 ## Troubleshooting
 
 See [FIREBASE_SETUP.md](./FIREBASE_SETUP.md) for common issues and solutions.
 
-## License
-
-[Add your license here]
+For specific issues:
+- **Live Control**: [docs/LIVE_CONTROL_SETUP.md#troubleshooting](docs/LIVE_CONTROL_SETUP.md#troubleshooting)
+- **Device Auth**: [docs/DEVICE_AUTHENTICATION.md#troubleshooting](docs/DEVICE_AUTHENTICATION.md#troubleshooting)
+- **Raspberry Pi**: [raspberry-pi/QUICK_START.md#troubleshooting](raspberry-pi/QUICK_START.md#troubleshooting)
 
 ## Support
 
@@ -236,6 +282,8 @@ For issues or questions, please open an issue on GitHub.
 
 ## Roadmap
 
+- [x] Live playback control and monitoring
+- [x] Raspberry Pi player integration
 - [ ] Mobile app for display control
 - [ ] Advanced analytics dashboard
 - [ ] Content approval workflow
@@ -243,7 +291,6 @@ For issues or questions, please open an issue on GitHub.
 - [ ] Display health monitoring
 - [ ] Automated content scheduling
 - [ ] Integration with external content sources
-- [ ] Real-time display preview
 - [ ] Report generation
 
 ## Acknowledgments
