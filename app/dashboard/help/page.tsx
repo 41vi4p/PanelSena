@@ -4,7 +4,8 @@ import { useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { ChevronDown, Search, Mail, MessageSquare, BookOpen } from "lucide-react"
+import { ChevronDown, Search, Mail, MessageSquare, BookOpen, Info } from "lucide-react"
+import { useRouter } from "next/navigation"
 
 interface FAQItem {
   id: string
@@ -75,6 +76,7 @@ const faqs: FAQItem[] = [
 const categories = ["All", ...new Set(faqs.map((faq) => faq.category))]
 
 export default function HelpPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState("")
   const [selectedCategory, setSelectedCategory] = useState("All")
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -96,7 +98,23 @@ export default function HelpPage() {
       </div>
 
       {/* Support Options */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <Card 
+          className="border-border/50 hover:border-border transition-colors cursor-pointer"
+          onClick={() => router.push('/dashboard/about')}
+        >
+          <CardContent className="pt-6 text-center space-y-3">
+            <div className="flex justify-center">
+              <Info className="w-8 h-8 text-primary" />
+            </div>
+            <h3 className="font-semibold text-foreground">About</h3>
+            <p className="text-sm text-muted-foreground">Learn more about PanelSena</p>
+            <Button variant="outline" className="w-full border-border bg-transparent">
+              View About
+            </Button>
+          </CardContent>
+        </Card>
+
         <Card className="border-border/50 hover:border-border transition-colors cursor-pointer">
           <CardContent className="pt-6 text-center space-y-3">
             <div className="flex justify-center">

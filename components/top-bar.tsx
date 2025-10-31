@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Bell, LogOut, Settings, PanelLeftClose, PanelLeft } from "lucide-react"
+import { Bell, LogOut, Settings, PanelLeftClose, PanelLeft, Info } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { signOut } from "@/lib/auth"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -37,6 +37,10 @@ export default function TopBar({ user, onMenuClick, onSidebarCollapse, sidebarCo
 
   const handleSettingsClick = () => {
     router.push("/dashboard/settings")
+  }
+
+  const handleAboutClick = () => {
+    router.push("/dashboard/about")
   }
 
   const getInitials = (name: string) => {
@@ -114,6 +118,10 @@ export default function TopBar({ user, onMenuClick, onSidebarCollapse, sidebarCo
             <DropdownMenuItem onClick={handleSettingsClick} className="cursor-pointer">
               <Settings className="mr-2 h-4 w-4" />
               Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={handleAboutClick} className="cursor-pointer">
+              <Info className="mr-2 h-4 w-4" />
+              About
             </DropdownMenuItem>
             <DropdownMenuItem onClick={handleLogout} className="text-destructive cursor-pointer">
               <LogOut className="mr-2 h-4 w-4" />
