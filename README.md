@@ -1,7 +1,7 @@
 <div align="center">
 
 # 🖥️ PanelSena
-Your Army of Displays
+*Your Army of Displays*
 
 ### Cloud-Based Digital Signage Management Platform
 
