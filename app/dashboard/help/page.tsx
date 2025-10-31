@@ -26,7 +26,7 @@ const faqs: FAQItem[] = [
     category: "Getting Started",
     question: "What are the system requirements?",
     answer:
-      "SmartDisplay requires a Raspberry Pi 3 or higher with at least 1GB RAM. You'll also need a stable internet connection and a compatible display (HDMI or similar). The system supports most modern digital displays and signage.",
+      "PanelSena requires a Raspberry Pi 3 or higher with at least 1GB RAM. You'll also need a stable internet connection and a compatible display (HDMI or similar). The system supports most modern digital displays and signage.",
   },
   {
     id: "3",
@@ -47,7 +47,7 @@ const faqs: FAQItem[] = [
     category: "Troubleshooting",
     question: "Why is my display showing offline?",
     answer:
-      "Check that your Raspberry Pi has a stable internet connection. Verify the device is powered on and the SmartDisplay service is running. You can restart the service from the display controls panel.",
+      "Check that your Raspberry Pi has a stable internet connection. Verify the device is powered on and the PanelSena service is running. You can restart the service from the display controls panel.",
   },
   {
     id: "6",
@@ -92,7 +92,7 @@ export default function HelpPage() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-foreground">Help & Support</h1>
-        <p className="text-muted-foreground mt-1">Find answers and get support for SmartDisplay</p>
+        <p className="text-muted-foreground mt-1">Find answers and get support for PanelSena</p>
       </div>
 
       {/* Support Options */}
@@ -216,7 +216,7 @@ export default function HelpPage() {
           <div className="flex items-center justify-between p-3 hover:bg-accent/50 rounded-lg transition-colors cursor-pointer">
             <div>
               <p className="font-medium text-foreground">API Documentation</p>
-              <p className="text-sm text-muted-foreground">Integrate SmartDisplay with your systems</p>
+              <p className="text-sm text-muted-foreground">Integrate PanelSena with your systems</p>
             </div>
             <Button variant="ghost" size="sm" className="text-primary">
               View
@@ -234,7 +234,7 @@ export default function HelpPage() {
           <div className="flex items-center justify-between p-3 hover:bg-accent/50 rounded-lg transition-colors cursor-pointer">
             <div>
               <p className="font-medium text-foreground">Community Forum</p>
-              <p className="text-sm text-muted-foreground">Connect with other SmartDisplay users</p>
+              <p className="text-sm text-muted-foreground">Connect with other PanelSena users</p>
             </div>
             <Button variant="ghost" size="sm" className="text-primary">
               Join

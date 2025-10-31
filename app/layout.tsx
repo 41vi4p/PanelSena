@@ -8,7 +8,7 @@ const _geist = Geist({ subsets: ["latin"] })
 const _geistMono = Geist_Mono({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
-  title: "SmartDisplay - Cloud Display Management",
+  title: "PanelSena - Cloud Display Management",
   description: "Manage your digital displays with ease",
   generator: "v0.app",
 }

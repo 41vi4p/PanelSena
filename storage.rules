@@ -1,0 +1,76 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is the owner
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Helper function to validate file size (max 100MB)
+    function validFileSize() {
+      return request.resource.size < 100 * 1024 * 1024;
+    }
+
+    // Helper function to validate image types
+    function validImageType() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    // Helper function to validate video types
+    function validVideoType() {
+      return request.resource.contentType.matches('video/.*');
+    }
+
+    // Helper function to validate document types
+    function validDocumentType() {
+      return request.resource.contentType in [
+        'application/pdf',
+        'application/msword',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'application/vnd.ms-powerpoint',
+        'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+        'text/plain'
+      ];
+    }
+
+    // User files structure: users/{userId}/{folder}/{fileName}
+    match /users/{userId}/{folder}/{fileName} {
+
+      // Images folder
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow write: if isAuthenticated() &&
+                     isOwner(userId) &&
+                     validFileSize() &&
+                     (folder == 'images' && validImageType());
+      allow delete: if isAuthenticated() && isOwner(userId);
+
+      // Videos folder
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow write: if isAuthenticated() &&
+                     isOwner(userId) &&
+                     validFileSize() &&
+                     (folder == 'videos' && validVideoType());
+      allow delete: if isAuthenticated() && isOwner(userId);
+
+      // Documents folder
+      allow read: if isAuthenticated() && isOwner(userId);
+      allow write: if isAuthenticated() &&
+                     isOwner(userId) &&
+                     validFileSize() &&
+                     (folder == 'documents' && validDocumentType());
+      allow delete: if isAuthenticated() && isOwner(userId);
+    }
+
+    // Deny all other access
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

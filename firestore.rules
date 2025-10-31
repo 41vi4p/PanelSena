@@ -1,0 +1,87 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user is the owner
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    // Users collection
+    match /users/{userId} {
+      // Users can read and write their own profile
+      allow read, write: if isAuthenticated() && isOwner(userId);
+    }
+
+    // Displays collection
+    match /displays/{displayId} {
+      // Users can read displays they own
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Users can create displays for themselves
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Users can update and delete their own displays
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // Content collection
+    match /content/{contentId} {
+      // Users can read content they own
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Users can create content for themselves
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Users can update and delete their own content
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // Schedules collection
+    match /schedules/{scheduleId} {
+      // Users can read schedules they own
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Users can create schedules for themselves
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Users can update and delete their own schedules
+      allow update, delete: if isAuthenticated() && isOwner(resource.data.userId);
+    }
+
+    // Activities collection
+    match /activities/{activityId} {
+      // Users can read activities they own
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Users can create activities for themselves
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Activities are read-only after creation (no updates or deletes)
+      allow update, delete: if false;
+    }
+
+    // Analytics collection
+    match /analytics/{analyticsId} {
+      // Users can read analytics they own
+      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+
+      // Users can create analytics for themselves
+      allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
+
+      // Analytics are read-only after creation
+      allow update, delete: if false;
+    }
+
+    // Deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
