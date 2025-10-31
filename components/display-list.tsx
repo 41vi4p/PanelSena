@@ -1,0 +1,108 @@
+"use client"
+
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Monitor, Power, Settings, Trash2 } from "lucide-react"
+
+interface Display {
+  id: number
+  name: string
+  location: string
+  status: "online" | "offline"
+  resolution: string
+  uptime: string
+  brightness: number
+  orientation: "landscape" | "portrait"
+  lastUpdate: string
+  group: string
+}
+
+interface DisplayListProps {
+  displays: Display[]
+  onEdit: (display: Display) => void
+  onDelete: (id: number) => void
+}
+
+export function DisplayList({ displays, onEdit, onDelete }: DisplayListProps) {
+  const groupedDisplays = displays.reduce(
+    (acc, display) => {
+      if (!acc[display.group]) {
+        acc[display.group] = []
+      }
+      acc[display.group].push(display)
+      return acc
+    },
+    {} as Record<string, Display[]>,
+  )
+
+  return (
+    <div className="space-y-6">
+      {Object.entries(groupedDisplays).map(([group, groupDisplays]) => (
+        <div key={group} className="space-y-3">
+          <h2 className="text-lg font-semibold text-foreground">{group}</h2>
+          <div className="grid grid-cols-1 gap-3">
+            {groupDisplays.map((display) => (
+              <Card key={display.id} className="border-border hover:border-primary/50 transition-colors">
+                <CardContent className="p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                      <div className="p-3 bg-muted rounded-lg flex-shrink-0">
+                        <Monitor className="w-5 h-5 text-muted-foreground" />
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-foreground truncate">{display.name}</h3>
+                          <Badge
+                            variant={display.status === "online" ? "default" : "secondary"}
+                            className={
+                              display.status === "online"
+                                ? "bg-green-500/20 text-green-700 dark:text-green-400"
+                                : "bg-red-500/20 text-red-700 dark:text-red-400"
+                            }
+                          >
+                            {display.status === "online" ? "Online" : "Offline"}
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground">{display.location}</p>
+                        <div className="flex gap-4 mt-2 text-xs text-muted-foreground">
+                          <span>{display.resolution}</span>
+                          <span>Brightness: {display.brightness}%</span>
+                          <span>Uptime: {display.uptime}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9"
+                        title={display.status === "online" ? "Turn off" : "Turn on"}
+                        onClick={() => console.log(`Toggle power for ${display.name}`)}
+                      >
+                        <Power className="w-4 h-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-9 w-9" onClick={() => onEdit(display)}>
+                        <Settings className="w-4 h-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-9 w-9 text-destructive hover:text-destructive"
+                        onClick={() => onDelete(display.id)}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )
+}
