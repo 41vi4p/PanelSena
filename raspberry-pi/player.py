@@ -328,12 +328,13 @@ class PanelSenaPlayer:
         try:
             print(f"[INFO] Playing content: {content_id}")
             
-            # Fetch content metadata from Firestore
-            content_ref = self.firestore_db.collection('users').document(self.user_id).collection('content').document(content_id)
+            # Fetch content metadata from Firestore (content is stored at root level)
+            content_ref = self.firestore_db.collection('content').document(content_id)
             content_doc = content_ref.get()
             
             if not content_doc.exists:
-                print(f"[ERROR] Content not found: {content_id}")
+                print(f"[ERROR] Content not found in Firestore: {content_id}")
+                print(f"[DEBUG] Checked path: content/{content_id}")
                 self.update_status("error", f"Content not found: {content_id}")
                 return
             
