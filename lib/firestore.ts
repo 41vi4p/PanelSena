@@ -151,6 +151,9 @@ export const updateSchedule = (id: string, data: Partial<Schedule>) => updateDoc
 
 export const deleteSchedule = (id: string) => deleteDocument('schedules', id)
 
+export const subscribeToSchedules = (userId: string, callback: (schedules: Schedule[]) => void) =>
+  subscribeToCollection<Schedule>('schedules', [where('userId', '==', userId), orderBy('createdAt', 'desc')], callback)
+
 // Activity-specific operations
 export const createActivity = (userId: string, activityData: Partial<Activity>) =>
   createDocument<Activity>('activities', {

@@ -46,9 +46,10 @@ class PanelSenaPlayer:
         Path(CONTENT_DIR).mkdir(exist_ok=True)
         Path(CACHE_DIR).mkdir(exist_ok=True)
 
-        # VLC player instance
-        self.vlc_instance = vlc.Instance('--no-xlib --quiet')
+        # VLC player instance with fullscreen and other options
+        self.vlc_instance = vlc.Instance('--no-xlib --quiet --fullscreen')
         self.player = self.vlc_instance.media_player_new()
+        self.player.set_fullscreen(True)
         self.current_media = None
 
         # State
@@ -452,6 +453,9 @@ class PanelSenaPlayer:
             self.current_media = self.vlc_instance.media_new(file_path)
             self.player.set_media(self.current_media)
 
+            # Set fullscreen
+            self.player.set_fullscreen(True)
+
             # Set volume
             self.player.audio_set_volume(self.volume)
 
@@ -479,7 +483,7 @@ class PanelSenaPlayer:
             # For images, display for a fixed duration (e.g., 10 seconds)
             if content_info.get('type') == 'image':
                 print(f"[INFO] Displaying image for 10 seconds")
-                threading.Timer(10.0, self.skip_content).start()
+                threading.Timer(10.0, self.handle_content_end).start()
             else:
                 # Monitor playback for videos
                 self.monitor_playback()
@@ -500,7 +504,7 @@ class PanelSenaPlayer:
                 state = self.player.get_state()
                 if state == vlc.State.Ended:
                     print("[INFO] Playback ended")
-                    self.skip_content()
+                    self.handle_content_end()
                     break
                 time.sleep(1)
 
@@ -508,13 +512,25 @@ class PanelSenaPlayer:
         monitor_thread.daemon = True
         monitor_thread.start()
 
+    def handle_content_end(self):
+        """Handle end of content playback"""
+        if self.content_queue and len(self.content_queue) > 0:
+            # We have a queue, play next item
+            self.skip_content()
+        else:
+            # No queue, just stop and go to idle state
+            print("[INFO] Content finished, no queue. Going to idle state.")
+            self.is_playing = False
+            self.is_paused = False
+            self.current_content = None
+            self.update_status("online")
+
     def play_from_queue(self):
         """Play next content from queue"""
         if self.current_index < len(self.content_queue):
             content_id = self.content_queue[self.current_index]
-            # Fetch content and play
-            # This is simplified - you'd fetch actual content metadata
-            print(f"[INFO] Playing from queue: {content_id} (index {self.current_index})")
+            # Play the content
+            self.play_single_content(content_id)
         else:
             # Loop back to start
             self.current_index = 0
@@ -528,10 +544,17 @@ class PanelSenaPlayer:
             self.is_paused = True
             self.update_status("paused")
             print("[INFO] Playback paused")
+        elif self.is_playing and self.is_paused:
+            # Resume if already paused
+            self.player.pause()
+            self.is_paused = False
+            self.update_status("playing")
+            print("[INFO] Playback resumed")
 
     def stop_playback(self):
         """Stop playback"""
-        self.player.stop()
+        if self.is_playing or self.is_paused:
+            self.player.stop()
         self.is_playing = False
         self.is_paused = False
         self.current_content = None
@@ -543,12 +566,15 @@ class PanelSenaPlayer:
 
     def skip_content(self):
         """Skip to next content"""
-        if self.content_queue:
+        if self.content_queue and len(self.content_queue) > 0:
             self.current_index += 1
             if self.current_index >= len(self.content_queue):
                 self.current_index = 0
             self.play_from_queue()
             print(f"[INFO] Skipped to index {self.current_index}")
+        else:
+            print("[INFO] No content queue, stopping playback")
+            self.stop_playback()
 
     def set_volume(self, volume):
         """Set playback volume"""

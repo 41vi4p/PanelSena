@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { Schedule } from '@/lib/types'
 import {
   createSchedule,
-  getUserSchedules,
+  subscribeToSchedules,
   updateSchedule,
   deleteSchedule,
   createActivity,
@@ -19,20 +19,17 @@ export function useSchedules(userId: string | undefined) {
       return
     }
 
-    const loadSchedules = async () => {
-      setLoading(true)
-      try {
-        const data = await getUserSchedules(userId)
-        setSchedules(data)
-      } catch (err) {
-        console.error('Error loading schedules:', err)
-        setError('Failed to load schedules')
-      } finally {
-        setLoading(false)
-      }
-    }
+    setLoading(true)
+    
+    // Subscribe to real-time schedule updates
+    const unsubscribe = subscribeToSchedules(userId, (data) => {
+      setSchedules(data)
+      setLoading(false)
+    })
 
-    loadSchedules()
+    return () => {
+      if (unsubscribe) unsubscribe()
+    }
   }, [userId])
 
   const addSchedule = async (scheduleData: Partial<Schedule>) => {
@@ -40,7 +37,6 @@ export function useSchedules(userId: string | undefined) {
 
     try {
       const newSchedule = await createSchedule(userId, scheduleData)
-      setSchedules((prev) => [newSchedule, ...prev])
       
       // Log schedule creation
       await createActivity(userId, {
@@ -72,11 +68,6 @@ export function useSchedules(userId: string | undefined) {
     
     try {
       await updateSchedule(id, data)
-      setSchedules((prev) =>
-        prev.map((schedule) =>
-          schedule.id === id ? { ...schedule, ...data } : schedule
-        )
-      )
       
       // Log schedule update
       await createActivity(userId, {
@@ -107,7 +98,6 @@ export function useSchedules(userId: string | undefined) {
     try {
       const schedule = schedules.find(s => s.id === id)
       await deleteSchedule(id)
-      setSchedules((prev) => prev.filter((schedule) => schedule.id !== id))
       
       // Log schedule deletion
       await createActivity(userId, {
