@@ -98,10 +98,14 @@ export function useContent(userId: string | undefined) {
     }
   }
 
-  const removeContent = async (contentItem: ContentItem) => {
+  const removeContent = async (contentId: string) => {
     if (!userId) throw new Error('User not authenticated')
     
     try {
+      // Find the content item to get storage ref
+      const contentItem = content.find(c => c.id === contentId)
+      if (!contentItem) throw new Error('Content not found')
+      
       // Delete file from storage
       await deleteFile(contentItem.storageRef)
 
@@ -124,7 +128,7 @@ export function useContent(userId: string | undefined) {
         type: 'system',
         action: 'Content Delete Error',
         description: `Failed to delete content: ${err}`,
-        metadata: { error: String(err), contentName: contentItem.name }
+        metadata: { error: String(err), contentId }
       }).catch(console.error)
       
       throw err

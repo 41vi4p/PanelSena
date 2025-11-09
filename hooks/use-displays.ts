@@ -6,6 +6,7 @@ import {
   deleteDisplay,
   subscribeToDisplays,
 } from '@/lib/firestore'
+import { listenToAllDisplaysStatus } from '@/lib/realtime-db'
 
 export function useDisplays(userId: string | undefined) {
   const [displays, setDisplays] = useState<Display[]>([])
@@ -20,13 +21,59 @@ export function useDisplays(userId: string | undefined) {
 
     setLoading(true)
 
-    // Subscribe to realtime updates
-    const unsubscribe = subscribeToDisplays(userId, (updatedDisplays) => {
-      setDisplays(updatedDisplays)
-      setLoading(false)
+    let firestoreDisplays: Display[] = []
+    let realtimeStatuses: Record<string, any> = {}
+    let firestoreLoaded = false
+    let realtimeLoaded = false
+
+    const mergeAndSetDisplays = () => {
+      // Only merge if we have at least Firestore data
+      if (!firestoreLoaded) return
+
+      const mergedDisplays = firestoreDisplays.map(display => {
+        const realtimeStatus = realtimeStatuses[display.id]
+        if (realtimeStatus) {
+          return {
+            ...display,
+            status: realtimeStatus.status || display.status,
+            lastUpdate: realtimeStatus.lastHeartbeat 
+              ? new Date(realtimeStatus.lastHeartbeat).toISOString() 
+              : display.lastUpdate,
+            uptime: realtimeStatus.uptime || display.uptime,
+            volume: realtimeStatus.volume,
+            currentContent: realtimeStatus.currentContent,
+            schedule: realtimeStatus.schedule,
+          }
+        }
+        return display
+      })
+      
+      setDisplays(mergedDisplays)
+      
+      // Mark as loaded once we have data from both sources or just Firestore
+      if (firestoreLoaded) {
+        setLoading(false)
+      }
+    }
+
+    // Subscribe to Firestore displays
+    const unsubscribeFirestore = subscribeToDisplays(userId, (updatedDisplays) => {
+      firestoreDisplays = updatedDisplays
+      firestoreLoaded = true
+      mergeAndSetDisplays()
     })
 
-    return () => unsubscribe()
+    // Subscribe to Realtime Database status updates
+    const unsubscribeRealtime = listenToAllDisplaysStatus(userId, (statuses) => {
+      realtimeStatuses = statuses
+      realtimeLoaded = true
+      mergeAndSetDisplays()
+    })
+
+    return () => {
+      unsubscribeFirestore()
+      unsubscribeRealtime()
+    }
   }, [userId])
 
   const addDisplay = async (displayData: Partial<Display>) => {

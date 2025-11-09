@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import { DisplayList } from "@/components/display-list"
 import { DisplayDetailsModal } from "@/components/display-details-modal"
 import { DeviceLinkDialog } from "@/components/device-link-dialog"
@@ -29,6 +29,7 @@ export default function DisplaysPage() {
   const [filterStatus, setFilterStatus] = useState<string[]>(["online", "offline"])
 
   const [pendingDisplayId, setPendingDisplayId] = useState<string | null>(null)
+  const linkSuccessRef = useRef(false)
 
   const handleEditDisplay = (display: Display) => {
     setSelectedDisplay(display)
@@ -100,24 +101,26 @@ export default function DisplaysPage() {
     console.log('Creating pending display for user:', user.uid)
     
     // Create a pending display with temporary name
-    const newDisplay: Partial<Display> = {
-      name: "Pending Link...",
-      location: "Not Set",
-      status: "offline",
-      resolution: "1920x1080",
-      uptime: "0%",
-      brightness: 50,
-      orientation: "landscape",
-      lastUpdate: new Date().toISOString(),
-      group: "Uncategorized",
-    }
-    
     try {
+      // Create a pending display that will be deleted if device link fails
+      const newDisplay: Partial<Display> = {
+        name: "Pending Link...",
+        location: "Not Set",
+        status: "offline",
+        resolution: "1920x1080",
+        uptime: "0%",
+        brightness: 50,
+        orientation: "landscape",
+        lastUpdate: new Date().toISOString(),
+        group: "Uncategorized",
+      }
+
       console.log('Calling addDisplay with:', newDisplay)
       const display = await addDisplay(newDisplay)
       console.log('Pending display created:', display)
       
       setPendingDisplayId(display.id)
+      linkSuccessRef.current = false // Reset success flag
       setDisplayToLink({ id: display.id, name: display.name })
       setIsLinkDialogOpen(true)
     } catch (error) {
@@ -130,14 +133,23 @@ export default function DisplaysPage() {
     if (!user || !pendingDisplayId) return
 
     try {
-      // Update display name after successful linking
-      await editDisplay(pendingDisplayId, { name: "New Display" })
+      // Mark link as successful
+      linkSuccessRef.current = true
+      
+      // Update display name and status after successful linking
+      await editDisplay(pendingDisplayId, { 
+        name: "New Display",
+        status: "online",
+        lastUpdate: new Date().toISOString()
+      })
       await logActivity(
         'display',
         'Device Linked Successfully',
         `Linked device ${deviceId} to display`,
         { deviceId, displayId: pendingDisplayId }
       )
+      
+      // Clear pending ID BEFORE closing dialog to prevent deletion
       setPendingDisplayId(null)
       setIsLinkDialogOpen(false)
       setDisplayToLink(null)
@@ -153,17 +165,21 @@ export default function DisplaysPage() {
   }
 
   const handleLinkDialogClose = async () => {
-    // If closing without successful link, delete pending display
-    if (pendingDisplayId) {
+    // Only delete pending display if user closes dialog without successful link
+    if (pendingDisplayId && !linkSuccessRef.current) {
       try {
+        console.log('Removing pending display (link not successful):', pendingDisplayId)
         await removeDisplay(pendingDisplayId)
-        setPendingDisplayId(null)
       } catch (error) {
         console.error("Error removing pending display:", error)
       }
     }
+    
+    // Reset state
+    setPendingDisplayId(null)
     setIsLinkDialogOpen(false)
     setDisplayToLink(null)
+    linkSuccessRef.current = false
   }
 
   const handleLinkDevice = (display: Display) => {

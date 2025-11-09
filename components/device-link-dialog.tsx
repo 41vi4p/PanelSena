@@ -51,12 +51,19 @@ export function DeviceLinkDialog({
       if (result.success) {
         setSuccess(true)
         
-        setTimeout(() => {
-          onSuccess?.(deviceId)
+        setTimeout(async () => {
+          // Call success handler and wait for it to complete
+          if (onSuccess) {
+            await onSuccess(deviceId)
+          }
+          
+          // Reset form
           setDeviceId("")
           setDeviceKey("")
-          onOpenChange(false)
           setSuccess(false)
+          
+          // Close dialog last
+          onOpenChange(false)
         }, 1500)
       } else {
         setError(result.error || "Failed to link device")

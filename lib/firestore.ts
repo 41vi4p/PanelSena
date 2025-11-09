@@ -108,8 +108,9 @@ export const subscribeToDocument = <T extends DocumentData>(
 }
 
 // Display-specific operations
-export const createDisplay = (userId: string, displayData: Partial<Display>) =>
-  createDocument<Display>('displays', { ...displayData, userId } as Omit<Display, 'id' | 'createdAt' | 'updatedAt'>)
+export const createDisplay = async (userId: string, displayData: Partial<Display>) => {
+  return await createDocument<Display>('displays', { ...displayData, userId } as Omit<Display, 'id' | 'createdAt' | 'updatedAt'>)
+}
 
 export const getUserDisplays = (userId: string) =>
   getDocuments<Display>('displays', [where('userId', '==', userId), orderBy('createdAt', 'desc')])

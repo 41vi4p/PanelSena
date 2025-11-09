@@ -12,38 +12,35 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Upload, CheckCircle } from "lucide-react"
 
-interface ContentItem {
-  id: number
-  name: string
-  type: "image" | "video" | "document"
-  size: string
-  uploadDate: string
-  category: string
-  thumbnail?: string
-}
-
 interface ContentUploadProps {
-  onUpload: (content: ContentItem) => void
+  onUpload: (file: File, category: string, type: 'image' | 'video' | 'document') => Promise<void>
 }
 
 export function ContentUpload({ onUpload }: ContentUploadProps) {
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [fileName, setFileName] = useState("")
   const [category, setCategory] = useState("")
   const [uploadProgress, setUploadProgress] = useState(0)
   const [isUploading, setIsUploading] = useState(false)
-  const [uploadedFiles, setUploadedFiles] = useState<ContentItem[]>([])
 
   const categories = ["Marketing", "Promotions", "Information", "Events", "Announcements", "Menus"]
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
+      setSelectedFile(file)
       setFileName(file.name)
     }
   }
 
-  const handleUpload = () => {
-    if (!fileName || !category) {
+  const getFileType = (file: File): 'image' | 'video' | 'document' => {
+    if (file.type.startsWith('image/')) return 'image'
+    if (file.type.startsWith('video/')) return 'video'
+    return 'document'
+  }
+
+  const handleUpload = async () => {
+    if (!selectedFile || !category) {
       alert("Please select a file and category")
       return
     }
@@ -51,34 +48,27 @@ export function ContentUpload({ onUpload }: ContentUploadProps) {
     setIsUploading(true)
     setUploadProgress(0)
 
-    // Simulate upload progress
-    const interval = setInterval(() => {
-      setUploadProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(interval)
-          setIsUploading(false)
-
-          // Create new content item
-          const newContent: ContentItem = {
-            id: Date.now(),
-            name: fileName,
-            type: fileName.endsWith(".mp4") ? "video" : fileName.endsWith(".pdf") ? "document" : "image",
-            size: "2.5 MB",
-            uploadDate: "just now",
-            category: category,
-            thumbnail: "/abstract-uploaded-content.png",
-          }
-
-          setUploadedFiles([...uploadedFiles, newContent])
-          onUpload(newContent)
-          setFileName("")
-          setCategory("")
-
-          return 100
-        }
-        return prev + Math.random() * 30
-      })
-    }, 300)
+    try {
+      const fileType = getFileType(selectedFile)
+      await onUpload(selectedFile, category, fileType)
+      
+      // Reset form
+      setFileName("")
+      setCategory("")
+      setSelectedFile(null)
+      setUploadProgress(100)
+      
+      // Reset file input
+      const fileInput = document.getElementById('file-input') as HTMLInputElement
+      if (fileInput) fileInput.value = ''
+      
+    } catch (error) {
+      console.error('Upload error:', error)
+      alert('Upload failed. Please try again.')
+    } finally {
+      setIsUploading(false)
+      setTimeout(() => setUploadProgress(0), 2000)
+    }
   }
 
   return (
@@ -163,27 +153,6 @@ export function ContentUpload({ onUpload }: ContentUploadProps) {
           )}
         </CardContent>
       </Card>
-
-      {uploadedFiles.length > 0 && (
-        <Card className="border-border border-green-500/50 bg-green-500/5">
-          <CardHeader>
-            <CardTitle className="text-green-700 dark:text-green-400 flex items-center gap-2">
-              <CheckCircle className="w-5 h-5" />
-              Recently Uploaded
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {uploadedFiles.map((file) => (
-                <div key={file.id} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <p className="text-sm font-medium text-foreground">{file.name}</p>
-                  <Badge variant="secondary">{file.category}</Badge>
-                </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   )
 }

@@ -5,26 +5,22 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
-import { ImageIcon, Video, FileText, Trash2, Download, Eye } from "lucide-react"
-
-interface ContentItem {
-  id: number
-  name: string
-  type: "image" | "video" | "document"
-  size: string
-  uploadDate: string
-  category: string
-  thumbnail?: string
-}
+import { ImageIcon, Video, FileText, Trash2, Download, Eye, Play } from "lucide-react"
+import { ContentItem } from "@/lib/types"
+import { Display } from "@/lib/types"
 
 interface ContentLibraryProps {
   items: ContentItem[]
-  onDelete: (id: number) => void
+  onDelete: (id: string) => void
+  displays?: Display[]
+  onPlayNow?: (contentId: string, displayId: string) => void
 }
 
-export function ContentLibrary({ items, onDelete }: ContentLibraryProps) {
+export function ContentLibrary({ items, onDelete, displays = [], onPlayNow }: ContentLibraryProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
+  const [previewContent, setPreviewContent] = useState<ContentItem | null>(null)
+  const [showPlayDialog, setShowPlayDialog] = useState<ContentItem | null>(null)
 
   const categories = Array.from(new Set(items.map((item) => item.category)))
 
@@ -33,6 +29,29 @@ export function ContentLibrary({ items, onDelete }: ContentLibraryProps) {
     const matchesCategory = !selectedCategory || item.category === selectedCategory
     return matchesSearch && matchesCategory
   })
+
+  const handleViewContent = (item: ContentItem) => {
+    setPreviewContent(item)
+  }
+
+  const handleDownload = (item: ContentItem) => {
+    window.open(item.url, '_blank')
+  }
+
+  const handlePlayNow = (item: ContentItem) => {
+    if (displays.length === 0) {
+      alert('No displays available. Please add and link a display first.')
+      return
+    }
+    setShowPlayDialog(item)
+  }
+
+  const handleSelectDisplay = (displayId: string) => {
+    if (showPlayDialog && onPlayNow) {
+      onPlayNow(showPlayDialog.id, displayId)
+      setShowPlayDialog(null)
+    }
+  }
 
   const getTypeIcon = (type: string) => {
     switch (type) {
@@ -82,11 +101,11 @@ export function ContentLibrary({ items, onDelete }: ContentLibraryProps) {
         {filteredItems.map((item) => (
           <Card key={item.id} className="border-border overflow-hidden hover:border-primary/50 transition-colors">
             {item.thumbnail && (
-              <div className="relative w-full h-40 bg-muted overflow-hidden">
+              <div className="relative group cursor-pointer" onClick={() => handleViewContent(item)}>
                 <img
-                  src={item.thumbnail || "/placeholder.svg"}
+                  src={item.thumbnail}
                   alt={item.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-40 object-cover"
                 />
                 <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
                   <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
@@ -96,7 +115,18 @@ export function ContentLibrary({ items, onDelete }: ContentLibraryProps) {
               </div>
             )}
 
-            {!item.thumbnail && (
+            {!item.thumbnail && item.url && (
+              <div className="relative group cursor-pointer w-full h-40 bg-muted flex items-center justify-center" onClick={() => handleViewContent(item)}>
+                {getTypeIcon(item.type)}
+                <div className="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+                  <Button variant="ghost" size="icon" className="text-white hover:bg-white/20">
+                    <Eye className="w-5 h-5" />
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {!item.thumbnail && !item.url && (
               <div className="w-full h-40 bg-muted flex items-center justify-center">{getTypeIcon(item.type)}</div>
             )}
 
@@ -117,9 +147,12 @@ export function ContentLibrary({ items, onDelete }: ContentLibraryProps) {
               </div>
 
               <div className="flex gap-2 pt-2">
-                <Button variant="outline" size="sm" className="flex-1 bg-transparent">
-                  <Download className="w-4 h-4 mr-1" />
-                  Download
+                <Button variant="outline" size="sm" className="flex-1 bg-transparent" onClick={() => handlePlayNow(item)}>
+                  <Play className="w-4 h-4 mr-1" />
+                  Play Now
+                </Button>
+                <Button variant="outline" size="sm" className="bg-transparent" onClick={() => handleDownload(item)}>
+                  <Download className="w-4 h-4" />
                 </Button>
                 <Button
                   variant="outline"
@@ -138,6 +171,67 @@ export function ContentLibrary({ items, onDelete }: ContentLibraryProps) {
       {filteredItems.length === 0 && (
         <div className="text-center py-12">
           <p className="text-muted-foreground">No content found</p>
+        </div>
+      )}
+
+      {/* Content Preview Modal */}
+      {previewContent && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setPreviewContent(null)}>
+          <div className="bg-card rounded-lg max-w-4xl w-full max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-border flex justify-between items-center">
+              <h3 className="font-semibold text-foreground">{previewContent.name}</h3>
+              <Button variant="ghost" size="icon" onClick={() => setPreviewContent(null)}>
+                <span className="text-xl">×</span>
+              </Button>
+            </div>
+            <div className="p-4">
+              {previewContent.type === 'image' && (
+                <img src={previewContent.url} alt={previewContent.name} className="w-full h-auto" />
+              )}
+              {previewContent.type === 'video' && (
+                <video src={previewContent.url} controls className="w-full h-auto" />
+              )}
+              {previewContent.type === 'document' && (
+                <iframe src={previewContent.url} className="w-full h-[600px] border-0" title={previewContent.name} />
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Play Now Dialog */}
+      {showPlayDialog && (
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => setShowPlayDialog(null)}>
+          <div className="bg-card rounded-lg max-w-md w-full" onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-b border-border">
+              <h3 className="font-semibold text-foreground">Play on Display</h3>
+              <p className="text-sm text-muted-foreground mt-1">Select which display to play "{showPlayDialog.name}"</p>
+            </div>
+            <div className="p-4 space-y-2 max-h-[400px] overflow-auto">
+              {displays.filter(d => d.status === 'online').length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">No online displays available</p>
+              ) : (
+                displays
+                  .filter(d => d.status === 'online')
+                  .map(display => (
+                    <Button
+                      key={display.id}
+                      variant="outline"
+                      className="w-full justify-start"
+                      onClick={() => handleSelectDisplay(display.id)}
+                    >
+                      <Play className="w-4 h-4 mr-2" />
+                      {display.name} - {display.location}
+                    </Button>
+                  ))
+              )}
+            </div>
+            <div className="p-4 border-t border-border">
+              <Button variant="outline" className="w-full" onClick={() => setShowPlayDialog(null)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
         </div>
       )}
     </div>

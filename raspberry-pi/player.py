@@ -231,10 +231,21 @@ class PanelSenaPlayer:
             if event.data is None:
                 return
 
-            for command_id, command in event.data.items():
-                if command.get('status') == 'pending':
-                    print(f"[INFO] Received command: {command.get('type')}")
-                    self.execute_command(command_id, command)
+            # Handle both single command and multiple commands
+            if isinstance(event.data, dict):
+                # Check if it's a single command (has 'status' key) or multiple commands
+                if 'status' in event.data:
+                    # Single command object
+                    if event.data.get('status') == 'pending':
+                        command_id = event.data.get('commandId', 'unknown')
+                        print(f"[INFO] Received command: {event.data.get('type')}")
+                        self.execute_command(command_id, event.data)
+                else:
+                    # Multiple commands
+                    for command_id, command in event.data.items():
+                        if isinstance(command, dict) and command.get('status') == 'pending':
+                            print(f"[INFO] Received command: {command.get('type')}")
+                            self.execute_command(command_id, command)
 
         commands_ref.listen(command_listener)
         print("[INFO] Listening for commands...")

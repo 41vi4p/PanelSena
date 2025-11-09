@@ -13,6 +13,10 @@ export interface Display {
   group: string
   createdAt: string
   updatedAt: string
+  // Realtime status fields
+  volume?: number
+  currentContent?: any
+  schedule?: any
 }
 
 // Content types

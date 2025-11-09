@@ -1,42 +1,72 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { ContentLibrary } from "@/components/content-library"
 import { ContentUpload } from "@/components/content-upload"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { ImageIcon, VideoIcon, FileTextIcon } from "lucide-react"
-
-interface ContentItem {
-  id: number
-  name: string
-  type: "image" | "video" | "document"
-  size: string
-  uploadDate: string
-  category: string
-  thumbnail?: string
-}
+import { useAuth } from "@/hooks/use-auth"
+import { useContent } from "@/hooks/use-content"
+import { useDisplays } from "@/hooks/use-displays"
+import { ContentItem } from "@/lib/types"
+import { sendPlaybackCommand } from "@/lib/realtime-db"
 
 export default function ContentPage() {
-  const [contentItems, setContentItems] = useState<ContentItem[]>([])
+  const { user } = useAuth()
+  const { content, loading, uploadContent, editContent, removeContent, uploadProgress } = useContent(user?.uid)
+  const { displays } = useDisplays(user?.uid)
   const [activeTab, setActiveTab] = useState("library")
 
-  // TODO: Fetch content from Firebase using useContent hook
-  useEffect(() => {
-    // Content will come from Firebase
-    setContentItems([])
-  }, [])
-
-  const handleUpload = (newContent: ContentItem) => {
-    setContentItems([...contentItems, newContent])
+  const handleUpload = async (file: File, category: string, type: 'image' | 'video' | 'document') => {
+    try {
+      await uploadContent(file, category, type)
+      setActiveTab("library")
+    } catch (error) {
+      console.error("Upload failed:", error)
+    }
   }
 
-  const handleDelete = (id: number) => {
-    setContentItems(contentItems.filter((item) => item.id !== id))
+  const handleDelete = async (id: string) => {
+    try {
+      await removeContent(id)
+    } catch (error) {
+      console.error("Delete failed:", error)
+    }
   }
 
-  const imageCount = contentItems.filter((item) => item.type === "image").length
-  const videoCount = contentItems.filter((item) => item.type === "video").length
-  const documentCount = contentItems.filter((item) => item.type === "document").length
+  const handlePlayNow = async (contentId: string, displayId: string) => {
+    if (!user) return
+    
+    try {
+      const contentItem = content.find(c => c.id === contentId)
+      if (!contentItem) return
+
+      await sendPlaybackCommand(user.uid, displayId, {
+        type: 'play',
+        displayId,
+        payload: {
+          contentId: contentItem.id,
+        }
+      })
+      
+      alert(`Playing "${contentItem.name}" on display`)
+    } catch (error) {
+      console.error("Play now failed:", error)
+      alert('Failed to send play command')
+    }
+  }
+
+  const imageCount = content.filter((item) => item.type === "image").length
+  const videoCount = content.filter((item) => item.type === "video").length
+  const documentCount = content.filter((item) => item.type === "document").length
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading content...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -91,7 +121,12 @@ export default function ContentPage() {
           </TabsList>
 
           <TabsContent value="library" className="mt-6">
-            <ContentLibrary items={contentItems} onDelete={handleDelete} />
+            <ContentLibrary 
+              items={content} 
+              onDelete={handleDelete}
+              displays={displays}
+              onPlayNow={handlePlayNow}
+            />
           </TabsContent>
 
           <TabsContent value="upload" className="mt-6">

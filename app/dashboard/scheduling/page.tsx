@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { ScheduleCalendar } from "@/components/schedule-calendar"
 import { ScheduleForm } from "@/components/schedule-form"
 import { ScheduleList } from "@/components/schedule-list"
@@ -13,76 +13,77 @@ import {
   DropdownMenuTrigger,
   DropdownMenuCheckboxItem,
 } from "@/components/ui/dropdown-menu"
-
-interface Schedule {
-  id: number
-  name: string
-  content: string
-  displays: string[]
-  startDate: string
-  endDate: string
-  startTime: string
-  endTime: string
-  recurring: "none" | "daily" | "weekly" | "monthly"
-  daysOfWeek?: string[]
-  status: "active" | "scheduled" | "completed"
-}
+import { useAuth } from "@/hooks/use-auth"
+import { useSchedules } from "@/hooks/use-schedules"
+import { Schedule } from "@/lib/types"
 
 export default function SchedulingPage() {
-  const [schedules, setSchedules] = useState<Schedule[]>([])
+  const { user } = useAuth()
+  const { schedules, loading, addSchedule, editSchedule: updateSchedule, removeSchedule } = useSchedules(user?.uid)
   const [showForm, setShowForm] = useState(false)
   const [editingSchedule, setEditingSchedule] = useState<Schedule | null>(null)
-  const [filterStatus, setFilterStatus] = useState<string[]>(["active", "scheduled", "completed"])
+  const [filterStatus, setFilterStatus] = useState<string[]>(["active", "paused", "completed"])
 
-  // TODO: Fetch schedules from Firebase using useSchedules hook
-  useEffect(() => {
-    // Schedules will come from Firebase
-    setSchedules([])
-  }, [])
-
-  const handleAddSchedule = (newSchedule: Omit<Schedule, "id">) => {
-    console.log("[v0] Adding new schedule:", newSchedule)
-    const schedule: Schedule = {
-      ...newSchedule,
-      id: Date.now(),
+  const handleAddSchedule = async (newSchedule: Partial<Schedule>) => {
+    try {
+      await addSchedule(newSchedule)
+      setShowForm(false)
+    } catch (error) {
+      console.error("Error adding schedule:", error)
+      alert('Failed to create schedule')
     }
-    setSchedules([...schedules, schedule])
-    setShowForm(false)
   }
 
   const handleEditSchedule = (schedule: Schedule) => {
-    console.log("[v0] Editing schedule:", schedule)
     setEditingSchedule(schedule)
     setShowForm(true)
   }
 
-  const handleUpdateSchedule = (updatedSchedule: Schedule) => {
-    console.log("[v0] Updating schedule:", updatedSchedule)
-    setSchedules(schedules.map((s) => (s.id === updatedSchedule.id ? updatedSchedule : s)))
-    setShowForm(false)
-    setEditingSchedule(null)
+  const handleUpdateSchedule = async (updatedSchedule: Partial<Schedule>) => {
+    if (!editingSchedule) return
+    
+    try {
+      await updateSchedule(editingSchedule.id, updatedSchedule)
+      setShowForm(false)
+      setEditingSchedule(null)
+    } catch (error) {
+      console.error("Error updating schedule:", error)
+      alert('Failed to update schedule')
+    }
   }
 
-  const handleDeleteSchedule = (id: number) => {
-    console.log("[v0] Deleting schedule:", id)
-    setSchedules(schedules.filter((s) => s.id !== id))
+  const handleDeleteSchedule = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this schedule?')) return
+    
+    try {
+      await removeSchedule(id)
+    } catch (error) {
+      console.error("Error deleting schedule:", error)
+      alert('Failed to delete schedule')
+    }
   }
 
   const handleCloseForm = () => {
-    console.log("[v0] Closing schedule form")
     setShowForm(false)
     setEditingSchedule(null)
   }
 
   const toggleFilter = (status: string) => {
-    console.log("[v0] Toggling filter:", status)
     setFilterStatus((prev) => (prev.includes(status) ? prev.filter((s) => s !== status) : [...prev, status]))
   }
 
   const filteredSchedules = schedules.filter((s) => filterStatus.includes(s.status))
 
   const activeCount = schedules.filter((s) => s.status === "active").length
-  const scheduledCount = schedules.filter((s) => s.status === "scheduled").length
+  const pausedCount = schedules.filter((s) => s.status === "paused").length
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <p className="text-muted-foreground">Loading schedules...</p>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-background">
