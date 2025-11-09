@@ -385,26 +385,6 @@ export default function LiveControlPage() {
                       />
                     </div>
 
-                    {/* Brightness Control */}
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <label className="text-sm font-medium flex items-center gap-2">
-                          <Sun className="w-4 h-4" />
-                          Brightness
-                        </label>
-                        <span className="text-sm text-muted-foreground">
-                          {brightnessLevels[display.id] ?? liveStatus?.brightness ?? 100}%
-                        </span>
-                      </div>
-                      <Slider
-                        value={[brightnessLevels[display.id] ?? liveStatus?.brightness ?? 100]}
-                        onValueChange={(value) => handleBrightnessChange(display.id, value)}
-                        max={100}
-                        step={1}
-                        disabled={!isOnline}
-                      />
-                    </div>
-
                     {/* Last Heartbeat */}
                     {liveStatus && (
                       <p className="text-xs text-muted-foreground">
