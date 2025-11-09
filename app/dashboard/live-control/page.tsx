@@ -15,6 +15,7 @@ import {
   StopCircle,
   SkipForward,
   Volume2,
+  Sun,
   RotateCcw,
   Monitor,
   Activity,
@@ -42,6 +43,7 @@ export default function LiveControlPage() {
     stopContent,
     skipContent,
     setVolume,
+    setBrightness,
     restartDevice,
     playSchedule,
   } = useLivePlayback(user?.uid)
@@ -50,14 +52,18 @@ export default function LiveControlPage() {
 
   const [selectedSchedules, setSelectedSchedules] = useState<Record<string, string>>({})
   const [volumes, setVolumes] = useState<Record<string, number>>({})
+  const [brightnessLevels, setBrightnessLevels] = useState<Record<string, number>>({})
 
-  // Initialize volumes from live data
+  // Initialize volumes and brightness from live data
   useEffect(() => {
     const newVolumes: Record<string, number> = {}
+    const newBrightness: Record<string, number> = {}
     Object.entries(liveDisplays).forEach(([displayId, status]) => {
       newVolumes[displayId] = status.volume || 80
+      newBrightness[displayId] = status.brightness || 100
     })
     setVolumes(newVolumes)
+    setBrightnessLevels(newBrightness)
   }, [liveDisplays])
 
   const handlePlaySchedule = async (displayId: string) => {
@@ -110,6 +116,18 @@ export default function LiveControlPage() {
       await setVolume(displayId, newVolume)
     } catch (error) {
       toast.error("Failed to set volume")
+    }
+  }
+
+  const handleBrightnessChange = async (displayId: string, value: number[]) => {
+    const newBrightness = value[0]
+    setBrightnessLevels((prev) => ({ ...prev, [displayId]: newBrightness }))
+
+    try {
+      await setBrightness(displayId, newBrightness)
+      toast.success("Brightness command sent")
+    } catch (error) {
+      toast.error("Failed to set brightness")
     }
   }
 
@@ -361,6 +379,26 @@ export default function LiveControlPage() {
                       <Slider
                         value={[currentVolume]}
                         onValueChange={(value) => handleVolumeChange(display.id, value)}
+                        max={100}
+                        step={1}
+                        disabled={!isOnline}
+                      />
+                    </div>
+
+                    {/* Brightness Control */}
+                    <div className="space-y-2">
+                      <div className="flex items-center justify-between">
+                        <label className="text-sm font-medium flex items-center gap-2">
+                          <Sun className="w-4 h-4" />
+                          Brightness
+                        </label>
+                        <span className="text-sm text-muted-foreground">
+                          {brightnessLevels[display.id] ?? liveStatus?.brightness ?? 100}%
+                        </span>
+                      </div>
+                      <Slider
+                        value={[brightnessLevels[display.id] ?? liveStatus?.brightness ?? 100]}
+                        onValueChange={(value) => handleBrightnessChange(display.id, value)}
                         max={100}
                         step={1}
                         disabled={!isOnline}

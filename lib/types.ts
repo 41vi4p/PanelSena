@@ -97,6 +97,7 @@ export interface LivePlaybackStatus {
   } | null
   lastHeartbeat: number
   volume: number
+  brightness?: number
   errorMessage?: string
 }
 
@@ -116,10 +117,11 @@ export interface DeviceRegistration {
 export interface PlaybackCommand {
   commandId: string
   displayId: string
-  type: "play" | "pause" | "stop" | "skip" | "volume" | "restart"
+  type: "play" | "pause" | "stop" | "skip" | "volume" | "brightness" | "restart"
   payload?: {
     contentId?: string
     volume?: number
+    brightness?: number
     scheduleId?: string
   }
   timestamp: number

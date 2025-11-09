@@ -60,6 +60,7 @@ class PanelSenaPlayer:
         self.content_queue = []
         self.current_index = 0
         self.volume = 80
+        self.brightness = 100  # Default brightness (0-100)
 
         # Heartbeat thread
         self.heartbeat_thread = threading.Thread(target=self.heartbeat_loop)
@@ -184,6 +185,7 @@ class PanelSenaPlayer:
                 'status': status,
                 'lastHeartbeat': int(time.time() * 1000),
                 'volume': self.volume,
+                'brightness': self.brightness,
             }
 
             print(f"[DEBUG] Preparing status update: status={status}, lastHeartbeat={status_data['lastHeartbeat']}")
@@ -303,6 +305,9 @@ class PanelSenaPlayer:
 
             elif command_type == 'volume':
                 self.set_volume(payload.get('volume', 80))
+
+            elif command_type == 'brightness':
+                self.set_brightness(payload.get('brightness', 100))
 
             elif command_type == 'restart':
                 self.restart_device()
@@ -636,6 +641,76 @@ class PanelSenaPlayer:
         self.player.audio_set_volume(self.volume)
         self.update_status()
         print(f"[INFO] Volume set to {self.volume}%")
+
+    def set_brightness(self, brightness):
+        """Set display brightness"""
+        try:
+            self.brightness = max(0, min(100, brightness))
+            
+            # Convert 0-100 to actual brightness value
+            # For Raspberry Pi official display, brightness is controlled via /sys/class/backlight
+            brightness_path = "/sys/class/backlight/rpi_backlight/brightness"
+            max_brightness_path = "/sys/class/backlight/rpi_backlight/max_brightness"
+            
+            # Check if running on Raspberry Pi with official display
+            if os.path.exists(brightness_path) and os.path.exists(max_brightness_path):
+                try:
+                    # Read max brightness
+                    with open(max_brightness_path, 'r') as f:
+                        max_brightness = int(f.read().strip())
+                    
+                    # Calculate actual brightness value
+                    actual_brightness = int((self.brightness / 100.0) * max_brightness)
+                    
+                    # Write brightness value
+                    with open(brightness_path, 'w') as f:
+                        f.write(str(actual_brightness))
+                    
+                    print(f"[INFO] Display brightness set to {self.brightness}% (value: {actual_brightness}/{max_brightness})")
+                except PermissionError:
+                    print(f"[WARN] Permission denied to set brightness. Run with sudo or add user to video group.")
+                    print(f"[WARN] To fix: sudo usermod -a -G video $USER")
+                except Exception as e:
+                    print(f"[ERROR] Failed to set hardware brightness: {e}")
+            else:
+                # Try alternative methods for different displays
+                # Method 1: vcgencmd (for official Raspberry Pi display)
+                try:
+                    result = subprocess.run(
+                        ['vcgencmd', 'display_power', '1'],
+                        capture_output=True,
+                        text=True,
+                        timeout=5
+                    )
+                    if result.returncode == 0:
+                        print(f"[INFO] Display power on, brightness setting may require additional hardware support")
+                except Exception as e:
+                    print(f"[DEBUG] vcgencmd not available: {e}")
+                
+                # Method 2: ddcutil (for external displays with DDC/CI support)
+                try:
+                    result = subprocess.run(
+                        ['ddcutil', 'setvcp', '10', str(self.brightness)],
+                        capture_output=True,
+                        text=True,
+                        timeout=10
+                    )
+                    if result.returncode == 0:
+                        print(f"[INFO] Display brightness set to {self.brightness}% via DDC/CI")
+                    else:
+                        print(f"[WARN] ddcutil failed: {result.stderr}")
+                except FileNotFoundError:
+                    print(f"[INFO] Brightness set to {self.brightness}% (hardware control not available)")
+                except Exception as e:
+                    print(f"[DEBUG] ddcutil not available: {e}")
+            
+            # Update status regardless of hardware control success
+            self.update_status()
+            
+        except Exception as e:
+            print(f"[ERROR] Failed to set brightness: {e}")
+            import traceback
+            traceback.print_exc()
 
     def restart_device(self):
         """Restart the Raspberry Pi"""

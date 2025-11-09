@@ -26,7 +26,7 @@ export default function DisplaysPage() {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false)
   const [displayToLink, setDisplayToLink] = useState<{ id: string; name: string } | null>(null)
-  const [filterStatus, setFilterStatus] = useState<string[]>(["online", "offline"])
+  const [filterStatus, setFilterStatus] = useState<string[]>(["online", "offline", "paused", "playing"])
 
   const [pendingDisplayId, setPendingDisplayId] = useState<string | null>(null)
   const linkSuccessRef = useRef(false)
@@ -229,6 +229,18 @@ export default function DisplaysPage() {
                   onCheckedChange={() => toggleFilter("offline")}
                 >
                   Offline
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={filterStatus.includes("paused")}
+                  onCheckedChange={() => toggleFilter("paused")}
+                >
+                  Paused
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={filterStatus.includes("playing")}
+                  onCheckedChange={() => toggleFilter("playing")}
+                >
+                  Playing
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>

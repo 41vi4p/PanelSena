@@ -113,6 +113,16 @@ export function useLivePlayback(userId: string | undefined) {
     [sendCommand]
   )
 
+  const setBrightness = useCallback(
+    (displayId: string, brightness: number) => {
+      return sendCommand(displayId, {
+        type: 'brightness',
+        payload: { brightness },
+      })
+    },
+    [sendCommand]
+  )
+
   const restartDevice = useCallback(
     (displayId: string) => {
       return sendCommand(displayId, {
@@ -153,6 +163,7 @@ export function useLivePlayback(userId: string | undefined) {
     stopContent,
     skipContent,
     setVolume,
+    setBrightness,
     restartDevice,
     playSchedule,
     sendCommand,
