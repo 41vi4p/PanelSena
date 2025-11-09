@@ -33,6 +33,9 @@ class PanelSenaPlayer:
         self.user_id = None
         self.display_id = None
 
+        # State
+        self.running = True
+
         # Initialize Firebase
         self.init_firebase()
 
@@ -58,7 +61,6 @@ class PanelSenaPlayer:
         self.volume = 80
 
         # Heartbeat thread
-        self.running = True
         self.heartbeat_thread = threading.Thread(target=self.heartbeat_loop)
         self.heartbeat_thread.daemon = True
 
