@@ -348,9 +348,7 @@ class PanelSenaPlayer:
                 self.update_status("error", "Content has no storage URL")
                 return
             
-            # Remove the gs://bucket-name/ prefix if present
-            if storage_path.startswith('gs://'):
-                storage_path = '/'.join(storage_path.split('/')[3:])
+            print(f"[DEBUG] Storage URL: {storage_path}")
             
             # Determine file extension from content type or URL
             content_type = content_data.get('type', 'video')
@@ -405,12 +403,29 @@ class PanelSenaPlayer:
         """Download content from Firebase Storage"""
         try:
             print(f"[INFO] Downloading: {storage_path}")
-            blob = self.storage_bucket.blob(storage_path)
-            blob.download_to_filename(local_path)
+            
+            # Check if it's a full HTTPS URL or just a path
+            if storage_path.startswith('http://') or storage_path.startswith('https://'):
+                # It's a full URL, download directly with requests
+                print(f"[INFO] Downloading from URL...")
+                response = requests.get(storage_path, stream=True)
+                response.raise_for_status()
+                
+                with open(local_path, 'wb') as f:
+                    for chunk in response.iter_content(chunk_size=8192):
+                        f.write(chunk)
+            else:
+                # It's a blob path, use Firebase Storage SDK
+                print(f"[INFO] Downloading from blob path...")
+                blob = self.storage_bucket.blob(storage_path)
+                blob.download_to_filename(local_path)
+            
             print(f"[INFO] Downloaded to: {local_path}")
             return True
         except Exception as e:
             print(f"[ERROR] Failed to download content: {e}")
+            import traceback
+            traceback.print_exc()
             return False
 
     def play_file(self, file_path, content_info):
