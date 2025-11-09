@@ -14,7 +14,7 @@ import requests
 from datetime import datetime
 from pathlib import Path
 import firebase_admin
-from firebase_admin import credentials, db, storage
+from firebase_admin import credentials, db, storage, firestore
 import vlc
 
 # Configuration
@@ -89,6 +89,7 @@ class PanelSenaPlayer:
             # Get database and storage references
             self.db = db
             self.storage_bucket = storage.bucket()
+            self.firestore_db = firestore.client()
 
             print("[INFO] Firebase initialized successfully")
         except Exception as e:
@@ -326,12 +327,78 @@ class PanelSenaPlayer:
         """Play a single content item"""
         try:
             print(f"[INFO] Playing content: {content_id}")
-            # Fetch content metadata and play
-            # This would require fetching from Firestore
-            pass
+            
+            # Fetch content metadata from Firestore
+            content_ref = self.firestore_db.collection('users').document(self.user_id).collection('content').document(content_id)
+            content_doc = content_ref.get()
+            
+            if not content_doc.exists:
+                print(f"[ERROR] Content not found: {content_id}")
+                self.update_status("error", f"Content not found: {content_id}")
+                return
+            
+            content_data = content_doc.to_dict()
+            print(f"[INFO] Found content: {content_data.get('name')} ({content_data.get('type')})")
+            
+            # Get storage path
+            storage_path = content_data.get('url', '')
+            if not storage_path:
+                print(f"[ERROR] No storage URL for content: {content_id}")
+                self.update_status("error", "Content has no storage URL")
+                return
+            
+            # Remove the gs://bucket-name/ prefix if present
+            if storage_path.startswith('gs://'):
+                storage_path = '/'.join(storage_path.split('/')[3:])
+            
+            # Determine file extension from content type or URL
+            content_type = content_data.get('type', 'video')
+            file_extension = self._get_file_extension(storage_path, content_type)
+            
+            # Create local file path
+            local_filename = f"{content_id}{file_extension}"
+            local_path = os.path.join(CONTENT_DIR, local_filename)
+            
+            # Download if not already cached
+            if not os.path.exists(local_path):
+                print(f"[INFO] Downloading content from: {storage_path}")
+                if not self.download_content(storage_path, local_path):
+                    self.update_status("error", "Failed to download content")
+                    return
+            else:
+                print(f"[INFO] Using cached content: {local_path}")
+            
+            # Prepare content info
+            content_info = {
+                'id': content_id,
+                'name': content_data.get('name', 'Unknown'),
+                'type': content_type,
+                'url': storage_path,
+            }
+            
+            # Play the file
+            self.play_file(local_path, content_info)
+            
         except Exception as e:
             print(f"[ERROR] Failed to play content: {e}")
+            import traceback
+            traceback.print_exc()
             self.update_status("error", str(e))
+    
+    def _get_file_extension(self, storage_path, content_type):
+        """Determine file extension from path or content type"""
+        # Try to get extension from path
+        if '.' in storage_path:
+            ext = '.' + storage_path.split('.')[-1]
+            return ext
+        
+        # Fallback to content type
+        type_extensions = {
+            'image': '.jpg',
+            'video': '.mp4',
+            'document': '.pdf',
+        }
+        return type_extensions.get(content_type, '.mp4')
 
     def download_content(self, storage_path, local_path):
         """Download content from Firebase Storage"""
@@ -353,6 +420,17 @@ class PanelSenaPlayer:
                 return False
 
             print(f"[INFO] Playing: {file_path}")
+            
+            # Update state first
+            self.current_content = {
+                **content_info,
+                'startedAt': int(time.time() * 1000)
+            }
+
+            # Stop any current playback
+            if self.is_playing:
+                self.player.stop()
+                time.sleep(0.5)
 
             # Create media
             self.current_media = self.vlc_instance.media_new(file_path)
@@ -362,25 +440,40 @@ class PanelSenaPlayer:
             self.player.audio_set_volume(self.volume)
 
             # Play
-            self.player.play()
+            result = self.player.play()
+            
+            if result == -1:
+                print(f"[ERROR] VLC player failed to start playback")
+                self.update_status("error", "Failed to start playback")
+                return False
+
+            # Wait a bit for playback to start
+            time.sleep(1)
+            
+            # Check if playback actually started
+            state = self.player.get_state()
+            print(f"[INFO] Player state: {state}")
 
             # Update state
             self.is_playing = True
             self.is_paused = False
-            self.current_content = {
-                **content_info,
-                'startedAt': int(time.time() * 1000)
-            }
 
             self.update_status("playing")
-
-            # Monitor playback
-            self.monitor_playback()
+            
+            # For images, display for a fixed duration (e.g., 10 seconds)
+            if content_info.get('type') == 'image':
+                print(f"[INFO] Displaying image for 10 seconds")
+                threading.Timer(10.0, self.skip_content).start()
+            else:
+                # Monitor playback for videos
+                self.monitor_playback()
 
             return True
 
         except Exception as e:
             print(f"[ERROR] Failed to play file: {e}")
+            import traceback
+            traceback.print_exc()
             self.update_status("error", str(e))
             return False
 
