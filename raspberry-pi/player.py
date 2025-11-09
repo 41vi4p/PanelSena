@@ -170,6 +170,8 @@ class PanelSenaPlayer:
     def update_status(self, status="online", error_message=None):
         """Update display status in Firebase Realtime Database"""
         try:
+            print(f"[DEBUG] update_status called with status={status}")
+            
             if not self.user_id or not self.display_id:
                 print("[WARN] Cannot update status - user_id or display_id not set")
                 return
@@ -183,6 +185,8 @@ class PanelSenaPlayer:
                 'lastHeartbeat': int(time.time() * 1000),
                 'volume': self.volume,
             }
+
+            print(f"[DEBUG] Preparing status update: status={status}, lastHeartbeat={status_data['lastHeartbeat']}")
 
             # Add current content if playing
             if self.current_content:
@@ -211,7 +215,9 @@ class PanelSenaPlayer:
             if error_message:
                 status_data['errorMessage'] = error_message
 
+            print(f"[DEBUG] Setting Firebase status data...")
             status_ref.set(status_data)
+            print(f"[DEBUG] Firebase status updated successfully with status={status}")
 
         except Exception as e:
             print(f"[ERROR] Failed to update status: {e}")
@@ -220,6 +226,7 @@ class PanelSenaPlayer:
 
     def heartbeat_loop(self):
         """Send heartbeat every 10 seconds"""
+        print("[INFO] Heartbeat loop started")
         while self.running:
             try:
                 if self.is_playing and not self.is_paused:
@@ -229,6 +236,7 @@ class PanelSenaPlayer:
                 else:
                     current_status = "online"
                 
+                print(f"[DEBUG] Heartbeat: status={current_status}, is_playing={self.is_playing}, is_paused={self.is_paused}")
                 self.update_status(current_status)
             except Exception as e:
                 print(f"[ERROR] Heartbeat failed: {e}")
@@ -238,6 +246,8 @@ class PanelSenaPlayer:
                 pass
 
             time.sleep(10)
+        
+        print("[INFO] Heartbeat loop ended")
 
     def listen_for_commands(self):
         """Listen for commands from Firebase"""
@@ -566,25 +576,34 @@ class PanelSenaPlayer:
     def pause_playback(self):
         """Pause playback"""
         try:
+            print(f"[DEBUG] pause_playback called. is_playing={self.is_playing}, is_paused={self.is_paused}")
+            
             if self.is_playing and not self.is_paused:
                 print("[INFO] Pausing playback...")
                 self.player.pause()
                 self.is_paused = True
+                print(f"[DEBUG] Set is_paused=True, calling update_status with 'paused'")
                 self.update_status("paused")
-                print("[INFO] Playback paused")
+                print("[INFO] Playback paused successfully")
             elif self.is_playing and self.is_paused:
                 # Resume if already paused
                 print("[INFO] Resuming playback...")
                 self.player.pause()
                 self.is_paused = False
+                print(f"[DEBUG] Set is_paused=False, calling update_status with 'playing'")
                 self.update_status("playing")
-                print("[INFO] Playback resumed")
+                print("[INFO] Playback resumed successfully")
             else:
-                print("[WARN] Cannot pause - no content is playing")
+                print(f"[WARN] Cannot pause - no content is playing (is_playing={self.is_playing})")
         except Exception as e:
             print(f"[ERROR] Failed to pause/resume: {e}")
             import traceback
             traceback.print_exc()
+            # Try to maintain online status even if pause fails
+            try:
+                self.update_status("online")
+            except:
+                pass
 
     def stop_playback(self):
         """Stop playback"""
