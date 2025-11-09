@@ -110,7 +110,7 @@ class PanelSenaPlayer:
                     sys.exit(1)
 
                 # Update last seen
-                device_ref.update({'lastSeen': db.ServerValue.TIMESTAMP})
+                device_ref.update({'lastSeen': int(time.time() * 1000)})
                 print("[INFO] Device authenticated successfully")
             else:
                 # Register new device
@@ -119,8 +119,8 @@ class PanelSenaPlayer:
                     'deviceId': self.device_id,
                     'deviceKey': self.device_key,
                     'displayName': self.display_name,
-                    'registeredAt': db.ServerValue.TIMESTAMP,
-                    'lastSeen': db.ServerValue.TIMESTAMP,
+                    'registeredAt': int(time.time() * 1000),
+                    'lastSeen': int(time.time() * 1000),
                     'linkedToUser': None,
                     'status': 'registered'
                 })
