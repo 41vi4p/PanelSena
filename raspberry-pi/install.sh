@@ -37,8 +37,8 @@ sudo apt-get install -y \
 
 # Create project directory
 echo "[3/7] Creating project directory..."
-mkdir -p ~/panelsena
-cd ~/panelsena
+# mkdir -p ~/panelsena
+# cd ~/panelsena
 
 # Install Python dependencies
 echo "[4/7] Installing Python dependencies..."
