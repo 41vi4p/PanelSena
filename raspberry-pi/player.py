@@ -170,6 +170,10 @@ class PanelSenaPlayer:
     def update_status(self, status="online", error_message=None):
         """Update display status in Firebase Realtime Database"""
         try:
+            if not self.user_id or not self.display_id:
+                print("[WARN] Cannot update status - user_id or display_id not set")
+                return
+
             status_ref = self.db.reference(f'users/{self.user_id}/displays/{self.display_id}/status')
 
             status_data = {
@@ -211,16 +215,27 @@ class PanelSenaPlayer:
 
         except Exception as e:
             print(f"[ERROR] Failed to update status: {e}")
+            import traceback
+            traceback.print_exc()
 
     def heartbeat_loop(self):
         """Send heartbeat every 10 seconds"""
         while self.running:
             try:
-                current_status = "playing" if self.is_playing and not self.is_paused else \
-                                "paused" if self.is_paused else "online"
+                if self.is_playing and not self.is_paused:
+                    current_status = "playing"
+                elif self.is_paused:
+                    current_status = "paused"
+                else:
+                    current_status = "online"
+                
                 self.update_status(current_status)
             except Exception as e:
                 print(f"[ERROR] Heartbeat failed: {e}")
+                import traceback
+                traceback.print_exc()
+                # Don't let heartbeat errors crash the loop
+                pass
 
             time.sleep(10)
 
@@ -254,9 +269,12 @@ class PanelSenaPlayer:
 
     def execute_command(self, command_id, command):
         """Execute a playback command"""
+        command_ref = None
         try:
             command_type = command.get('type')
             payload = command.get('payload', {})
+
+            print(f"[INFO] Executing command: {command_type}")
 
             if command_type == 'play':
                 if 'scheduleId' in payload:
@@ -287,17 +305,25 @@ class PanelSenaPlayer:
                 'status': 'executed',
                 'result': 'Command executed successfully'
             })
+            print(f"[INFO] Command {command_type} executed successfully")
 
         except Exception as e:
             print(f"[ERROR] Failed to execute command: {e}")
+            import traceback
+            traceback.print_exc()
+            
             # Mark command as failed
-            command_ref = self.db.reference(
-                f'users/{self.user_id}/displays/{self.display_id}/commands/{command_id}'
-            )
-            command_ref.update({
-                'status': 'failed',
-                'result': str(e)
-            })
+            try:
+                if command_ref is None:
+                    command_ref = self.db.reference(
+                        f'users/{self.user_id}/displays/{self.display_id}/commands/{command_id}'
+                    )
+                command_ref.update({
+                    'status': 'failed',
+                    'result': str(e)
+                })
+            except Exception as update_error:
+                print(f"[ERROR] Failed to update command status: {update_error}")
 
     def load_and_play_schedule(self, schedule_id):
         """Load schedule from Firestore and start playback"""
@@ -539,17 +565,26 @@ class PanelSenaPlayer:
 
     def pause_playback(self):
         """Pause playback"""
-        if self.is_playing and not self.is_paused:
-            self.player.pause()
-            self.is_paused = True
-            self.update_status("paused")
-            print("[INFO] Playback paused")
-        elif self.is_playing and self.is_paused:
-            # Resume if already paused
-            self.player.pause()
-            self.is_paused = False
-            self.update_status("playing")
-            print("[INFO] Playback resumed")
+        try:
+            if self.is_playing and not self.is_paused:
+                print("[INFO] Pausing playback...")
+                self.player.pause()
+                self.is_paused = True
+                self.update_status("paused")
+                print("[INFO] Playback paused")
+            elif self.is_playing and self.is_paused:
+                # Resume if already paused
+                print("[INFO] Resuming playback...")
+                self.player.pause()
+                self.is_paused = False
+                self.update_status("playing")
+                print("[INFO] Playback resumed")
+            else:
+                print("[WARN] Cannot pause - no content is playing")
+        except Exception as e:
+            print(f"[ERROR] Failed to pause/resume: {e}")
+            import traceback
+            traceback.print_exc()
 
     def stop_playback(self):
         """Stop playback"""
