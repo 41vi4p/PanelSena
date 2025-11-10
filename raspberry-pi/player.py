@@ -378,31 +378,19 @@ class PanelSenaPlayer:
             
             schedule_data = schedule_doc.to_dict()
             print(f"[INFO] Found schedule: {schedule_data.get('name')}")
+            print(f"[DEBUG] Schedule data: {schedule_data}")
             
-            # Get content IDs from schedule
-            content_items = schedule_data.get('content', [])
-            if not content_items or len(content_items) == 0:
+            # Get content IDs from schedule (the field is 'contentIds')
+            content_ids = schedule_data.get('contentIds', [])
+            if not content_ids or len(content_ids) == 0:
                 print(f"[WARN] Schedule has no content items")
+                print(f"[DEBUG] Available schedule fields: {list(schedule_data.keys())}")
                 self.update_status("error", "Schedule has no content")
                 return
             
-            # Extract content IDs (content items might be objects with 'id' field)
-            self.content_queue = []
-            for item in content_items:
-                if isinstance(item, dict):
-                    content_id = item.get('id') or item.get('contentId')
-                else:
-                    content_id = item
-                
-                if content_id:
-                    self.content_queue.append(content_id)
-            
+            # Set the content queue
+            self.content_queue = content_ids
             print(f"[INFO] Loaded {len(self.content_queue)} content items: {self.content_queue}")
-            
-            if len(self.content_queue) == 0:
-                print(f"[WARN] No valid content IDs found in schedule")
-                self.update_status("error", "No valid content in schedule")
-                return
 
             # Set current schedule info
             self.current_schedule = {
