@@ -46,6 +46,9 @@ class PanelSenaPlayer:
         Path(CONTENT_DIR).mkdir(exist_ok=True)
         Path(CACHE_DIR).mkdir(exist_ok=True)
 
+        # VLC process (used for subprocess mode)
+        self.vlc_process = None
+
         # VLC player instance with fullscreen and other options
         # For Linux desktop environments (Ubuntu, etc.)
         # Detect if running in a desktop environment
@@ -495,7 +498,7 @@ class PanelSenaPlayer:
             return False
 
     def play_file(self, file_path, content_info):
-        """Play a media file using VLC"""
+        """Play a media file using VLC via subprocess"""
         try:
             if not os.path.exists(file_path):
                 print(f"[ERROR] File not found: {file_path}")
@@ -520,65 +523,60 @@ class PanelSenaPlayer:
             }
 
             # Stop any current playback
-            if self.is_playing:
-                self.player.stop()
-                time.sleep(0.5)
+            if hasattr(self, 'vlc_process') and self.vlc_process:
+                try:
+                    self.vlc_process.terminate()
+                    self.vlc_process.wait(timeout=2)
+                except:
+                    try:
+                        self.vlc_process.kill()
+                    except:
+                        pass
+                self.vlc_process = None
 
-            # Create media
-            self.current_media = self.vlc_instance.media_new(file_path)
-            self.player.set_media(self.current_media)
-
-            # Configure for fullscreen display
-            self.player.set_fullscreen(True)
+            # Get absolute path
+            abs_file_path = os.path.abspath(file_path)
             
-            # Additional display settings
-            # Disable mouse cursor and ensure video overlay
-            try:
-                self.player.video_set_mouse_input(False)
-                self.player.video_set_key_input(False)
-            except:
-                pass  # These methods might not be available on all VLC versions
-
-            # Set volume
-            self.player.audio_set_volume(self.volume)
-
-            # Play
-            result = self.player.play()
+            # Launch VLC as subprocess with fullscreen
+            vlc_command = [
+                'vlc',
+                '--fullscreen',
+                '--no-video-title-show',
+                '--play-and-exit',
+                '--no-qt-privacy-ask',
+                '--no-qt-system-tray',
+                '--mouse-hide-timeout=0',
+                abs_file_path
+            ]
             
-            if result == -1:
-                print(f"[ERROR] VLC player failed to start playback")
-                self.update_status("error", "Failed to start playback")
+            print(f"[DEBUG] Launching VLC with command: {' '.join(vlc_command)}")
+            
+            # Start VLC process
+            self.vlc_process = subprocess.Popen(
+                vlc_command,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL
+            )
+            
+            # Wait a bit to check if it started
+            time.sleep(1)
+            
+            # Check if process is running
+            if self.vlc_process.poll() is not None:
+                print(f"[ERROR] VLC process exited immediately with code {self.vlc_process.returncode}")
+                self.update_status("error", "Failed to start VLC playback")
                 return False
-
-            # Wait a bit for playback to start
-            time.sleep(2)
             
-            # Check if playback actually started
-            state = self.player.get_state()
-            print(f"[INFO] Player state: {state}")
+            print(f"[INFO] VLC process started successfully (PID: {self.vlc_process.pid})")
             
-            if state == vlc.State.Error:
-                print(f"[ERROR] VLC reported an error state")
-                self.update_status("error", "VLC player error")
-                return False
-            elif state == vlc.State.Playing:
-                print(f"[INFO] Video is now playing successfully")
-            else:
-                print(f"[WARN] Player state is {state}, video may not be visible")
-
             # Update state
             self.is_playing = True
             self.is_paused = False
 
             self.update_status("playing")
             
-            # For images, display for a fixed duration (e.g., 10 seconds)
-            if content_info.get('type') == 'image':
-                print(f"[INFO] Displaying image for 10 seconds")
-                threading.Timer(10.0, self.handle_content_end).start()
-            else:
-                # Monitor playback for videos
-                self.monitor_playback()
+            # Monitor playback in a separate thread
+            self.monitor_playback()
 
             return True
 
@@ -593,9 +591,16 @@ class PanelSenaPlayer:
         """Monitor playback and handle end of media"""
         def check_playback():
             while self.is_playing:
-                state = self.player.get_state()
-                if state == vlc.State.Ended:
-                    print("[INFO] Playback ended")
+                # Check if VLC process is still running
+                if hasattr(self, 'vlc_process') and self.vlc_process:
+                    returncode = self.vlc_process.poll()
+                    if returncode is not None:
+                        print(f"[INFO] VLC process ended with code {returncode}")
+                        self.handle_content_end()
+                        break
+                else:
+                    # Process not found, stop playback
+                    print("[INFO] VLC process not found")
                     self.handle_content_end()
                     break
                 time.sleep(1)
@@ -630,41 +635,34 @@ class PanelSenaPlayer:
                 self.play_from_queue()
 
     def pause_playback(self):
-        """Pause playback"""
+        """Pause playback - not supported in subprocess mode"""
         try:
             print(f"[DEBUG] pause_playback called. is_playing={self.is_playing}, is_paused={self.is_paused}")
-            
-            if self.is_playing and not self.is_paused:
-                print("[INFO] Pausing playback...")
-                self.player.pause()
-                self.is_paused = True
-                print(f"[DEBUG] Set is_paused=True, calling update_status with 'paused'")
-                self.update_status("paused")
-                print("[INFO] Playback paused successfully")
-            elif self.is_playing and self.is_paused:
-                # Resume if already paused
-                print("[INFO] Resuming playback...")
-                self.player.pause()
-                self.is_paused = False
-                print(f"[DEBUG] Set is_paused=False, calling update_status with 'playing'")
-                self.update_status("playing")
-                print("[INFO] Playback resumed successfully")
-            else:
-                print(f"[WARN] Cannot pause - no content is playing (is_playing={self.is_playing})")
+            print(f"[WARN] Pause/Resume not supported in subprocess VLC mode")
+            # Note: Pausing requires using VLC's RC interface or similar
+            # For simplicity, we'll just report the current state
         except Exception as e:
             print(f"[ERROR] Failed to pause/resume: {e}")
             import traceback
             traceback.print_exc()
-            # Try to maintain online status even if pause fails
-            try:
-                self.update_status("online")
-            except:
-                pass
 
     def stop_playback(self):
         """Stop playback"""
-        if self.is_playing or self.is_paused:
-            self.player.stop()
+        try:
+            # Terminate VLC process if running
+            if hasattr(self, 'vlc_process') and self.vlc_process:
+                try:
+                    self.vlc_process.terminate()
+                    self.vlc_process.wait(timeout=2)
+                except:
+                    try:
+                        self.vlc_process.kill()
+                    except:
+                        pass
+                self.vlc_process = None
+        except Exception as e:
+            print(f"[ERROR] Failed to stop playback: {e}")
+        
         self.is_playing = False
         self.is_paused = False
         self.current_content = None
