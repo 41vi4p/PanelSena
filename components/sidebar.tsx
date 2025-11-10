@@ -18,7 +18,6 @@ const menuItems = [
   { href: "/dashboard/content", label: "Content", icon: FileText },
   { href: "/dashboard/schedule", label: "Schedule", icon: Clock },
   { href: "/dashboard/live-control", label: "Live Control", icon: Radio },
-  { href: "/dashboard/analytics", label: "Analytics", icon: BarChart3 },
   { href: "/dashboard/logs", label: "Logs", icon: Activity },
   { href: "/dashboard/settings", label: "Settings", icon: Settings },
   { href: "/dashboard/help", label: "Help & Support", icon: HelpCircle },
