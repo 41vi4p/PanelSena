@@ -48,10 +48,20 @@ export const updateDocument = async <T extends DocumentData>(
   data: Partial<Omit<T, 'id' | 'createdAt' | 'updatedAt'>>
 ) => {
   const docRef = doc(db, collectionName, id)
+  
+  // Filter out undefined values to avoid Firestore errors
+  const cleanData = Object.entries(data).reduce((acc, [key, value]) => {
+    if (value !== undefined) {
+      acc[key] = value
+    }
+    return acc
+  }, {} as Record<string, any>)
+  
   const updateData = {
-    ...data,
+    ...cleanData,
     updatedAt: new Date().toISOString(),
   }
+  
   await updateDoc(docRef, updateData)
   return { id, ...updateData }
 }

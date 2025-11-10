@@ -11,7 +11,6 @@ import { Badge } from "@/components/ui/badge"
 import { Slider } from "@/components/ui/slider"
 import {
   Play,
-  Pause,
   StopCircle,
   SkipForward,
   Volume2,
@@ -39,7 +38,6 @@ export default function LiveControlPage() {
     onlineCount,
     playingCount,
     playContent,
-    pauseContent,
     stopContent,
     skipContent,
     setVolume,
@@ -78,15 +76,6 @@ export default function LiveControlPage() {
       toast.success("Play command sent to display")
     } catch (error) {
       toast.error("Failed to send play command")
-    }
-  }
-
-  const handlePause = async (displayId: string) => {
-    try {
-      await pauseContent(displayId)
-      toast.success("Pause command sent to display")
-    } catch (error) {
-      toast.error("Failed to send pause command")
     }
   }
 
@@ -328,15 +317,6 @@ export default function LiveControlPage() {
                       >
                         <Play className="w-4 h-4 mr-2" />
                         Play Schedule
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => handlePause(display.id)}
-                        disabled={!isOnline || liveStatus?.status !== "playing"}
-                      >
-                        <Pause className="w-4 h-4 mr-2" />
-                        Pause
                       </Button>
                       <Button
                         size="sm"
