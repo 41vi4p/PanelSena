@@ -365,26 +365,60 @@ class PanelSenaPlayer:
     def load_and_play_schedule(self, schedule_id):
         """Load schedule from Firestore and start playback"""
         try:
-            # Note: For simplicity, we're using the schedule_id directly
-            # In a real implementation, you'd fetch the schedule from Firestore
             print(f"[INFO] Loading schedule: {schedule_id}")
 
-            # For now, simulate schedule loading
-            # You would need to add Firestore client to fetch actual schedule data
-            # This is a simplified version
+            # Fetch schedule from Firestore
+            schedule_ref = self.firestore_db.collection('schedules').document(schedule_id)
+            schedule_doc = schedule_ref.get()
+            
+            if not schedule_doc.exists:
+                print(f"[ERROR] Schedule not found in Firestore: {schedule_id}")
+                self.update_status("error", f"Schedule not found: {schedule_id}")
+                return
+            
+            schedule_data = schedule_doc.to_dict()
+            print(f"[INFO] Found schedule: {schedule_data.get('name')}")
+            
+            # Get content IDs from schedule
+            content_items = schedule_data.get('content', [])
+            if not content_items or len(content_items) == 0:
+                print(f"[WARN] Schedule has no content items")
+                self.update_status("error", "Schedule has no content")
+                return
+            
+            # Extract content IDs (content items might be objects with 'id' field)
+            self.content_queue = []
+            for item in content_items:
+                if isinstance(item, dict):
+                    content_id = item.get('id') or item.get('contentId')
+                else:
+                    content_id = item
+                
+                if content_id:
+                    self.content_queue.append(content_id)
+            
+            print(f"[INFO] Loaded {len(self.content_queue)} content items: {self.content_queue}")
+            
+            if len(self.content_queue) == 0:
+                print(f"[WARN] No valid content IDs found in schedule")
+                self.update_status("error", "No valid content in schedule")
+                return
 
+            # Set current schedule info
             self.current_schedule = {
                 'id': schedule_id,
-                'name': f"Schedule {schedule_id}",
+                'name': schedule_data.get('name', f"Schedule {schedule_id}"),
             }
 
             # Start playing the first content
             self.current_index = 0
-            if self.content_queue:
-                self.play_from_queue()
+            print(f"[INFO] Starting playback from index {self.current_index}")
+            self.play_from_queue()
 
         except Exception as e:
             print(f"[ERROR] Failed to load schedule: {e}")
+            import traceback
+            traceback.print_exc()
             self.update_status("error", str(e))
 
     def play_single_content(self, content_id):

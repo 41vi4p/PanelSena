@@ -279,7 +279,7 @@ export default function LiveControlPage() {
                         </p>
                         <p className="text-xs text-muted-foreground mt-1">
                           Content {liveStatus.schedule.currentIndex + 1} of{" "}
-                          {liveStatus.schedule.contentQueue.length}
+                          {liveStatus.schedule.contentQueue?.length || 0}
                         </p>
                       </div>
                     )}

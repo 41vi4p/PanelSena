@@ -69,12 +69,16 @@ export function useSchedules(userId: string | undefined) {
     try {
       await updateSchedule(id, data)
       
+      // Find the schedule to get its name if not provided in data
+      const schedule = schedules.find(s => s.id === id)
+      const scheduleName = data.name || schedule?.name || 'Unnamed'
+      
       // Log schedule update
       await createActivity(userId, {
         type: 'schedule',
         action: 'Schedule Updated',
-        description: `Updated schedule "${data.name || 'Unnamed'}"`,
-        metadata: { scheduleName: data.name, scheduleId: id }
+        description: `Updated schedule "${scheduleName}"`,
+        metadata: { scheduleName, scheduleId: id }
       })
     } catch (err) {
       console.error('Error updating schedule:', err)
