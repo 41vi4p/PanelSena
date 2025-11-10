@@ -47,10 +47,28 @@ class PanelSenaPlayer:
         Path(CACHE_DIR).mkdir(exist_ok=True)
 
         # VLC player instance with fullscreen and other options
-        # Removed --no-xlib to allow display output on connected monitor
-        self.vlc_instance = vlc.Instance('--quiet --fullscreen')
+        # For Linux desktop environments (Ubuntu, etc.)
+        # Detect if running in a desktop environment
+        display = os.environ.get('DISPLAY', '')
+        
+        if display:
+            # Running in X11 desktop environment
+            print(f"[INFO] Detected X11 display: {display}")
+            # Let VLC create its own window - simpler and more reliable
+            self.vlc_instance = vlc.Instance(
+                '--no-video-title-show',
+                '--video-on-top',
+                '--fullscreen',
+                '--mouse-hide-timeout=0'
+            )
+        else:
+            # Headless or console mode
+            print("[INFO] No X11 display detected, using default output")
+            self.vlc_instance = vlc.Instance('--no-video-title-show', '--fullscreen')
+        
         self.player = self.vlc_instance.media_player_new()
         self.player.set_fullscreen(True)
+        
         self.current_media = None
 
         # State
@@ -484,6 +502,16 @@ class PanelSenaPlayer:
                 return False
 
             print(f"[INFO] Playing: {file_path}")
+            print(f"[DEBUG] Absolute file path: {os.path.abspath(file_path)}")
+            print(f"[DEBUG] File size: {os.path.getsize(file_path)} bytes")
+            
+            # Verify the file is a valid video
+            try:
+                import mimetypes
+                mime_type, _ = mimetypes.guess_type(file_path)
+                print(f"[DEBUG] MIME type: {mime_type}")
+            except:
+                pass
             
             # Update state first
             self.current_content = {
@@ -503,10 +531,13 @@ class PanelSenaPlayer:
             # Configure for fullscreen display
             self.player.set_fullscreen(True)
             
-            # Additional display settings for Raspberry Pi
+            # Additional display settings
             # Disable mouse cursor and ensure video overlay
-            self.player.video_set_mouse_input(False)
-            self.player.video_set_key_input(False)
+            try:
+                self.player.video_set_mouse_input(False)
+                self.player.video_set_key_input(False)
+            except:
+                pass  # These methods might not be available on all VLC versions
 
             # Set volume
             self.player.audio_set_volume(self.volume)
