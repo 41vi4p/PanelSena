@@ -130,27 +130,35 @@ export default function DisplaysPage() {
   }
 
   const handleDeviceLinkSuccess = async (deviceId: string) => {
-    if (!user || !pendingDisplayId) return
+    if (!user || !pendingDisplayId) {
+      console.error('[handleDeviceLinkSuccess] Missing user or pendingDisplayId')
+      return
+    }
 
     try {
-      // Mark link as successful
+      // Mark link as successful FIRST - this prevents deletion
       linkSuccessRef.current = true
       
+      const displayIdToUpdate = pendingDisplayId
+      
+      // Clear pending ID IMMEDIATELY to prevent any deletion attempts
+      setPendingDisplayId(null)
+      
       // Update display name and status after successful linking
-      await editDisplay(pendingDisplayId, { 
+      await editDisplay(displayIdToUpdate, { 
         name: "New Display",
         status: "online",
         lastUpdate: new Date().toISOString()
       })
+      
       await logActivity(
         'display',
         'Device Linked Successfully',
         `Linked device ${deviceId} to display`,
-        { deviceId, displayId: pendingDisplayId }
+        { deviceId, displayId: displayIdToUpdate }
       )
       
-      // Clear pending ID BEFORE closing dialog to prevent deletion
-      setPendingDisplayId(null)
+      // Close dialog after successful update
       setIsLinkDialogOpen(false)
       setDisplayToLink(null)
     } catch (error) {
@@ -165,10 +173,9 @@ export default function DisplaysPage() {
   }
 
   const handleLinkDialogClose = async () => {
-    // Only delete pending display if user closes dialog without successful link
-    if (pendingDisplayId && !linkSuccessRef.current) {
+    // Delete pending display since user cancelled
+    if (pendingDisplayId) {
       try {
-        console.log('Removing pending display (link not successful):', pendingDisplayId)
         await removeDisplay(pendingDisplayId)
       } catch (error) {
         console.error("Error removing pending display:", error)
@@ -192,6 +199,14 @@ export default function DisplaysPage() {
   }
 
   const filteredDisplays = displays.filter((d) => filterStatus.includes(d.status))
+
+  // Debug logging
+  console.log('[DisplaysPage] All displays:', displays.length)
+  console.log('[DisplaysPage] Filter status:', filterStatus)
+  console.log('[DisplaysPage] Filtered displays:', filteredDisplays.length)
+  displays.forEach(d => {
+    console.log(`[DisplaysPage] Display ${d.name} (${d.id}): status=${d.status}, filtered=${filterStatus.includes(d.status)}`)
+  })
 
   if (loading) {
     return (
@@ -291,6 +306,7 @@ export default function DisplaysPage() {
             open={isLinkDialogOpen}
             onOpenChange={(open) => {
               if (!open) {
+                // This is a manual close (cancel) - delete the pending display
                 handleLinkDialogClose()
               }
             }}

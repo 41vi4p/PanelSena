@@ -67,32 +67,20 @@ if [ ! -f config.json ]; then
     echo "Created config.json - Please edit this file with your Firebase credentials"
 fi
 
-# Create systemd service
-echo "[7/7] Creating systemd service..."
-sudo tee /etc/systemd/system/panelsena.service > /dev/null <<EOF
-[Unit]
-Description=PanelSena Digital Signage Player
-After=network.target
-
-[Service]
-Type=simple
-User=$USER
-WorkingDirectory=$HOME/panelsena
-ExecStart=/usr/bin/python3 $HOME/panelsena/player.py
-Restart=always
-RestartSec=10
-
-[Install]
-WantedBy=multi-user.target
-EOF
-
-# Reload systemd
-sudo systemctl daemon-reload
+# Add player to LXDE autostart instead of systemd service
+echo "[7/7] Adding player to desktop autostart..."
+grep -qxF "@python3 $HOME/panelsena/player.py" /etc/xdg/lxsession/LXDE-pi/autostart || \
+    echo "@python3 $HOME/panelsena/player.py" | sudo tee -a /etc/xdg/lxsession/LXDE-pi/autostart
 
 echo ""
 echo "================================================"
 echo "Installation Complete!"
 echo "================================================"
+echo ""
+echo "IMPORTANT: Make sure your Raspberry Pi is set to boot into Desktop mode:"
+echo "  1. Run: sudo raspi-config"
+echo "  2. Go to 'System Options' -> 'Boot / Auto Login' -> 'Desktop Autologin'"
+echo "  3. Reboot your Raspberry Pi"
 echo ""
 echo "Next steps:"
 echo "1. Download your Firebase service account key and save as:"

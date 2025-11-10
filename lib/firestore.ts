@@ -109,7 +109,10 @@ export const subscribeToDocument = <T extends DocumentData>(
 
 // Display-specific operations
 export const createDisplay = async (userId: string, displayData: Partial<Display>) => {
-  return await createDocument<Display>('displays', { ...displayData, userId } as Omit<Display, 'id' | 'createdAt' | 'updatedAt'>)
+  console.log('[createDisplay] Creating display for user:', userId, 'with data:', displayData)
+  const result = await createDocument<Display>('displays', { ...displayData, userId } as Omit<Display, 'id' | 'createdAt' | 'updatedAt'>)
+  console.log('[createDisplay] Created display:', result)
+  return result
 }
 
 export const getUserDisplays = (userId: string) =>

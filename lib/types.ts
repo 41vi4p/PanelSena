@@ -4,7 +4,7 @@ export interface Display {
   userId: string
   name: string
   location: string
-  status: "online" | "offline"
+  status: "online" | "offline" | "playing" | "paused"
   resolution: string
   uptime: string
   brightness: number

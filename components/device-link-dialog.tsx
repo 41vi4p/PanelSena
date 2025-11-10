@@ -51,19 +51,19 @@ export function DeviceLinkDialog({
       if (result.success) {
         setSuccess(true)
         
-        setTimeout(async () => {
-          // Call success handler and wait for it to complete
-          if (onSuccess) {
-            await onSuccess(deviceId)
-          }
-          
+        // Call success handler immediately (before closing dialog)
+        if (onSuccess) {
+          await onSuccess(deviceId)
+        }
+        
+        // Wait a bit to show success message, then close
+        setTimeout(() => {
           // Reset form
           setDeviceId("")
           setDeviceKey("")
           setSuccess(false)
           
-          // Close dialog last
-          onOpenChange(false)
+          // Don't call onOpenChange(false) - parent handles closing
         }, 1500)
       } else {
         setError(result.error || "Failed to link device")
@@ -75,18 +75,8 @@ export function DeviceLinkDialog({
     }
   }
 
-  const handleClose = () => {
-    if (!loading) {
-      setDeviceId("")
-      setDeviceKey("")
-      setError(null)
-      setSuccess(false)
-      onOpenChange(false)
-    }
-  }
-
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -175,7 +165,7 @@ export function DeviceLinkDialog({
             <Button
               type="button"
               variant="outline"
-              onClick={handleClose}
+              onClick={() => onOpenChange(false)}
               disabled={loading || success}
             >
               Cancel

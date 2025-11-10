@@ -47,7 +47,8 @@ class PanelSenaPlayer:
         Path(CACHE_DIR).mkdir(exist_ok=True)
 
         # VLC player instance with fullscreen and other options
-        self.vlc_instance = vlc.Instance('--no-xlib --quiet --fullscreen')
+        # Removed --no-xlib to allow display output on connected monitor
+        self.vlc_instance = vlc.Instance('--quiet --fullscreen')
         self.player = self.vlc_instance.media_player_new()
         self.player.set_fullscreen(True)
         self.current_media = None
@@ -428,10 +429,15 @@ class PanelSenaPlayer:
     
     def _get_file_extension(self, storage_path, content_type):
         """Determine file extension from path or content type"""
-        # Try to get extension from path
+        # Try to get extension from path, handling URLs with query parameters
         if '.' in storage_path:
-            ext = '.' + storage_path.split('.')[-1]
-            return ext
+            # Remove query parameters first
+            path_without_query = storage_path.split('?')[0]
+            # Split by dot and get the last part
+            parts = path_without_query.split('.')
+            if len(parts) > 1:
+                ext = '.' + parts[-1]
+                return ext
         
         # Fallback to content type
         type_extensions = {
@@ -494,8 +500,13 @@ class PanelSenaPlayer:
             self.current_media = self.vlc_instance.media_new(file_path)
             self.player.set_media(self.current_media)
 
-            # Set fullscreen
+            # Configure for fullscreen display
             self.player.set_fullscreen(True)
+            
+            # Additional display settings for Raspberry Pi
+            # Disable mouse cursor and ensure video overlay
+            self.player.video_set_mouse_input(False)
+            self.player.video_set_key_input(False)
 
             # Set volume
             self.player.audio_set_volume(self.volume)
@@ -509,11 +520,20 @@ class PanelSenaPlayer:
                 return False
 
             # Wait a bit for playback to start
-            time.sleep(1)
+            time.sleep(2)
             
             # Check if playback actually started
             state = self.player.get_state()
             print(f"[INFO] Player state: {state}")
+            
+            if state == vlc.State.Error:
+                print(f"[ERROR] VLC reported an error state")
+                self.update_status("error", "VLC player error")
+                return False
+            elif state == vlc.State.Playing:
+                print(f"[INFO] Video is now playing successfully")
+            else:
+                print(f"[WARN] Player state is {state}, video may not be visible")
 
             # Update state
             self.is_playing = True

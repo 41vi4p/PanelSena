@@ -206,10 +206,18 @@ export function DisplayGrid() {
               <CardContent className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Badge
-                    variant={display.status === "online" ? "default" : "secondary"}
-                    className={display.status === "online" ? "bg-green-500/20 text-green-700 dark:text-green-400" : ""}
+                    variant={display.status === "online" || display.status === "playing" ? "default" : "secondary"}
+                    className={
+                      display.status === "online"
+                        ? "bg-green-500/20 text-green-700 dark:text-green-400"
+                        : display.status === "playing"
+                        ? "bg-blue-500/20 text-blue-700 dark:text-blue-400"
+                        : display.status === "paused"
+                        ? "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400"
+                        : ""
+                    }
                   >
-                    {display.status === "online" ? "Online" : "Offline"}
+                    {display.status === "online" ? "Online" : display.status === "playing" ? "Playing" : display.status === "paused" ? "Paused" : "Offline"}
                   </Badge>
                   <span className="text-xs text-muted-foreground">Uptime: {display.uptime}</span>
                 </div>

@@ -45,14 +45,18 @@ export function DisplayList({ displays, onEdit, onDelete, onLinkDevice }: Displa
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="font-semibold text-foreground truncate">{display.name}</h3>
                           <Badge
-                            variant={display.status === "online" ? "default" : "secondary"}
+                            variant={display.status === "online" || display.status === "playing" ? "default" : "secondary"}
                             className={
                               display.status === "online"
                                 ? "bg-green-500/20 text-green-700 dark:text-green-400"
+                                : display.status === "playing"
+                                ? "bg-blue-500/20 text-blue-700 dark:text-blue-400"
+                                : display.status === "paused"
+                                ? "bg-yellow-500/20 text-yellow-700 dark:text-yellow-400"
                                 : "bg-red-500/20 text-red-700 dark:text-red-400"
                             }
                           >
-                            {display.status === "online" ? "Online" : "Offline"}
+                            {display.status === "online" ? "Online" : display.status === "playing" ? "Playing" : display.status === "paused" ? "Paused" : "Offline"}
                           </Badge>
                         </div>
                         <p className="text-sm text-muted-foreground">{display.location}</p>
