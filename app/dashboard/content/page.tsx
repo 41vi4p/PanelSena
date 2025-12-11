@@ -4,7 +4,7 @@ import { useState } from "react"
 import { ContentLibrary } from "@/components/content-library"
 import { ContentUpload } from "@/components/content-upload"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { ImageIcon, VideoIcon, FileTextIcon } from "lucide-react"
+import { ImageIcon, VideoIcon, Upload } from "lucide-react"
 import { useAuth } from "@/hooks/use-auth"
 import { useContent } from "@/hooks/use-content"
 import { useDisplays } from "@/hooks/use-displays"
@@ -58,7 +58,7 @@ export default function ContentPage() {
 
   const imageCount = content.filter((item) => item.type === "image").length
   const videoCount = content.filter((item) => item.type === "video").length
-  const documentCount = content.filter((item) => item.type === "document").length
+  const totalMediaCount = imageCount + videoCount
 
   if (loading) {
     return (
@@ -103,12 +103,12 @@ export default function ContentPage() {
 
           <div className="bg-card border border-border rounded-lg p-4">
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-amber-500/10 rounded-lg">
-                <FileTextIcon className="w-5 h-5 text-amber-500" />
+              <div className="p-3 bg-green-500/10 rounded-lg">
+                <Upload className="w-5 h-5 text-green-500" />
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">Documents</p>
-                <p className="text-2xl font-bold text-foreground">{documentCount}</p>
+                <p className="text-sm text-muted-foreground">Total Media</p>
+                <p className="text-2xl font-bold text-foreground">{totalMediaCount}</p>
               </div>
             </div>
           </div>
