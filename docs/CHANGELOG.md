@@ -9,6 +9,9 @@ The Kotlin Android client (`client_app/`) is now a first-class PanelSena player,
 the Raspberry Pi player. Any Android display, phone, or tablet can be linked to an account and
 controlled centrally from the dashboard.
 
+- **Authentication**: the sign-in screen now supports Email/Password sign-in and new-user
+  registration alongside Google Sign-In (requires Email/Password provider enabled in the
+  Firebase Console).
 - **Device-link protocol** matching the Raspberry Pi and dashboard contract:
   - `DeviceIdentityManager` generates and persists a `DEVICE_<timestamp>_<random>` Device ID
     and a 32-char secret Device Key (same format as `setup_device.py`).

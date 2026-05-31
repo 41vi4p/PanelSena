@@ -13,6 +13,21 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
+    // Helper: is the requester a linked display client granted access to `userId`'s resources?
+    // Grant docs are created by the dashboard on link, with id `${ownerUid}_${clientUid}`.
+    function isAuthorizedClient(userId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/displayAccess/$(userId + '_' + request.auth.uid));
+    }
+
+    // Cross-account access grants. Owner manages grants; the granted client can read its own grant.
+    match /displayAccess/{grantId} {
+      allow read: if isAuthenticated() &&
+        (isOwner(resource.data.ownerUid) || isOwner(resource.data.clientUid));
+      allow create, update: if isAuthenticated() && isOwner(request.resource.data.ownerUid);
+      allow delete: if isAuthenticated() && isOwner(resource.data.ownerUid);
+    }
+
     // Users collection
     match /users/{userId} {
       // Users can read and write their own profile
@@ -21,8 +36,9 @@ service cloud.firestore {
 
     // Displays collection
     match /displays/{displayId} {
-      // Users can read displays they own
-      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      // Owner, or a linked client granted access, can read the display
+      allow read: if isAuthenticated() &&
+        (isOwner(resource.data.userId) || isAuthorizedClient(resource.data.userId));
 
       // Users can create displays for themselves
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
@@ -33,8 +49,9 @@ service cloud.firestore {
 
     // Content collection
     match /content/{contentId} {
-      // Users can read content they own
-      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      // Owner, or a linked client granted access, can read the content
+      allow read: if isAuthenticated() &&
+        (isOwner(resource.data.userId) || isAuthorizedClient(resource.data.userId));
 
       // Users can create content for themselves
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId);
@@ -45,8 +62,9 @@ service cloud.firestore {
 
     // Schedules collection
     match /schedules/{scheduleId} {
-      // Users can read schedules they own
-      allow read: if isAuthenticated() && isOwner(resource.data.userId);
+      // Owner, or a linked client granted access, can read the schedule
+      allow read: if isAuthenticated() &&
+        (isOwner(resource.data.userId) || isAuthorizedClient(resource.data.userId));
 
       // Users can create schedules for themselves
       allow create: if isAuthenticated() && isOwner(request.resource.data.userId);

@@ -38,14 +38,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   return (
     <div data-theme={theme}>
       {children}
-      <script
-        dangerouslySetInnerHTML={{
-          __html: `
-            const theme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            if (theme === 'dark') document.documentElement.classList.add('dark');
-          `,
-        }}
-      />
     </div>
   )
 }

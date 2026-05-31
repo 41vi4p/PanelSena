@@ -1,0 +1,36 @@
+{
+  "rules": {
+    "device_registry": {
+      "$deviceId": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "pairing_sessions": {
+      "$code": {
+        ".read": "auth != null",
+        ".write": "auth != null"
+      }
+    },
+    "device_links": {
+      "$deviceId": {
+        ".read": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid || data.child('clientUid').val() === auth.uid)",
+        ".write": "auth != null && (!data.exists() || data.child('userId').val() === auth.uid) && (!newData.exists() || newData.child('userId').val() === auth.uid)"
+      }
+    },
+    "users": {
+      "$uid": {
+        "authorizedClients": {
+          ".read": "auth != null && $uid === auth.uid",
+          ".write": "auth != null && $uid === auth.uid"
+        },
+        "displays": {
+          ".read": "auth != null && ($uid === auth.uid || root.child('users').child($uid).child('authorizedClients').child(auth.uid).exists())",
+          ".write": "auth != null && ($uid === auth.uid || root.child('users').child($uid).child('authorizedClients').child(auth.uid).exists())"
+        },
+        ".read": "auth != null && $uid === auth.uid",
+        ".write": "auth != null && $uid === auth.uid"
+      }
+    }
+  }
+}

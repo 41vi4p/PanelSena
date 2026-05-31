@@ -26,6 +26,11 @@ const PATHS = {
   deviceAuth: (deviceId: string) => `device_registry/${deviceId}`,
   deviceLinks: () => `device_links`,
   deviceLink: (deviceId: string) => `device_links/${deviceId}`,
+  // Cross-account grant: lets a different client account heartbeat/read the owner's display subtree
+  authorizedClient: (ownerUid: string, clientUid: string) =>
+    `users/${ownerUid}/authorizedClients/${clientUid}`,
+  // QR "sign in with code" pairing: TV writes a short code here; the phone/browser completes it
+  pairingSession: (code: string) => `pairing_sessions/${code}`,
 }
 
 // Update display live status
@@ -258,13 +263,28 @@ export async function verifyDeviceCredentials(
   return deviceData.deviceKey === deviceKey
 }
 
-// Link device to user (called from dashboard when user enters device_id and device_key)
+// Get the device registry entry (includes the client app's signed-in account, if any)
+export async function getDeviceRegistration(
+  deviceId: string
+): Promise<{
+  clientUid?: string | null
+  clientEmail?: string | null
+  linkedToUser?: string | null
+  displayName?: string
+} | null> {
+  const snapshot = await get(ref(realtimeDb, PATHS.deviceAuth(deviceId)))
+  return snapshot.exists() ? snapshot.val() : null
+}
+
+// Link device to user (called from dashboard when user enters device_id and device_key).
+// `role` is the access level granted to the linked client account (e.g. "viewer" | "operator").
 export async function linkDeviceToUser(
   deviceId: string,
   deviceKey: string,
   userId: string,
-  displayId: string
-): Promise<{ success: boolean; error?: string }> {
+  displayId: string,
+  role: string = 'operator'
+): Promise<{ success: boolean; error?: string; clientUid?: string | null }> {
   try {
     // Verify device credentials first
     const isValid = await verifyDeviceCredentials(deviceId, deviceKey)
@@ -281,15 +301,34 @@ export async function linkDeviceToUser(
       return { success: false, error: 'Device already linked to another user' }
     }
 
+    // The account the display client app is signed into (may differ from the dashboard owner)
+    const clientUid: string | null = deviceData.clientUid ?? null
+    const clientEmail: string | null = deviceData.clientEmail ?? null
+
     // Create device link
     const deviceLinkRef = ref(realtimeDb, PATHS.deviceLink(deviceId))
     await set(deviceLinkRef, {
       deviceId,
       userId,
       displayId,
+      clientUid,
+      role,
       linkedAt: serverTimestamp(),
       status: 'active',
     })
+
+    // Grant the client account cross-account access to the owner's display subtree.
+    // Without this, RTDB rules deny the app's heartbeat when it is signed into a different account.
+    if (clientUid && clientUid !== userId) {
+      await set(ref(realtimeDb, PATHS.authorizedClient(userId, clientUid)), {
+        clientUid,
+        clientEmail,
+        deviceId,
+        displayId,
+        role,
+        grantedAt: serverTimestamp(),
+      })
+    }
 
     // Update device registry
     await update(deviceAuthRef, {
@@ -299,7 +338,7 @@ export async function linkDeviceToUser(
       lastLinked: serverTimestamp(),
     })
 
-    return { success: true }
+    return { success: true, clientUid }
   } catch (error) {
     console.error('Error linking device:', error)
     return { success: false, error: 'Failed to link device' }
@@ -329,6 +368,15 @@ export async function unlinkDevice(deviceId: string): Promise<void> {
   const deviceLinkRef = ref(realtimeDb, PATHS.deviceLink(deviceId))
   const deviceAuthRef = ref(realtimeDb, PATHS.deviceAuth(deviceId))
 
+  // Remove the cross-account access grant, if one was created on link
+  const linkSnap = await get(deviceLinkRef)
+  if (linkSnap.exists()) {
+    const link = linkSnap.val()
+    if (link.userId && link.clientUid && link.clientUid !== link.userId) {
+      await remove(ref(realtimeDb, PATHS.authorizedClient(link.userId, link.clientUid)))
+    }
+  }
+
   await remove(deviceLinkRef)
   await update(deviceAuthRef, {
     linkedToUser: null,
@@ -343,5 +391,36 @@ export async function updateDeviceLastSeen(deviceId: string): Promise<void> {
   const deviceAuthRef = ref(realtimeDb, PATHS.deviceAuth(deviceId))
   await update(deviceAuthRef, {
     lastSeen: serverTimestamp(),
+  })
+}
+
+// ===== QR "sign in with code" pairing =====
+// The TV/tablet (anonymously authed) creates pairing_sessions/{code} with its deviceId/deviceKey.
+// The phone/browser reads it, links the device to the signed-in account, then marks it linked.
+
+export interface PairingSession {
+  deviceId: string
+  deviceKey: string
+  displayName?: string
+  status: 'pending' | 'linked'
+  createdAt: number
+}
+
+export async function getPairingSession(code: string): Promise<PairingSession | null> {
+  const snapshot = await get(ref(realtimeDb, PATHS.pairingSession(code)))
+  return snapshot.exists() ? (snapshot.val() as PairingSession) : null
+}
+
+// Mark the session linked so the TV can show success (the TV is already watching device_links).
+export async function completePairingSession(
+  code: string,
+  userId: string,
+  displayId: string
+): Promise<void> {
+  await update(ref(realtimeDb, PATHS.pairingSession(code)), {
+    status: 'linked',
+    userId,
+    displayId,
+    linkedAt: serverTimestamp(),
   })
 }

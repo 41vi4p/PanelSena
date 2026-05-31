@@ -16,6 +16,7 @@ import {
   QueryConstraint,
 } from 'firebase/firestore'
 import { db } from './firebase'
+import { setDoc, deleteDoc as deleteFsDoc } from 'firebase/firestore'
 import type { Display, ContentItem, Schedule, Activity, Analytics } from './types'
 
 // Generic CRUD operations
@@ -29,7 +30,7 @@ export const createDocument = async <T extends DocumentData>(
     updatedAt: new Date().toISOString(),
   }
   const docRef = await addDoc(collection(db, collectionName), docData)
-  return { id: docRef.id, ...docData } as T
+  return { id: docRef.id, ...docData } as unknown as T
 }
 
 export const getDocument = async <T extends DocumentData>(collectionName: string, id: string) => {
@@ -37,7 +38,7 @@ export const getDocument = async <T extends DocumentData>(collectionName: string
   const docSnap = await getDoc(docRef)
 
   if (docSnap.exists()) {
-    return { id: docSnap.id, ...docSnap.data() } as T
+    return { id: docSnap.id, ...docSnap.data() } as unknown as T
   }
   return null
 }
@@ -81,7 +82,7 @@ export const getDocuments = async <T extends DocumentData>(
   return querySnapshot.docs.map((doc) => ({
     id: doc.id,
     ...doc.data(),
-  })) as T[]
+  })) as unknown as T[]
 }
 
 // Realtime listener
@@ -96,7 +97,7 @@ export const subscribeToCollection = <T extends DocumentData>(
     const data = snapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
-    })) as T[]
+    })) as unknown as T[]
     callback(data)
   })
 }
@@ -110,7 +111,7 @@ export const subscribeToDocument = <T extends DocumentData>(
 
   return onSnapshot(docRef, (doc) => {
     if (doc.exists()) {
-      callback({ id: doc.id, ...doc.data() } as T)
+      callback({ id: doc.id, ...doc.data() } as unknown as T)
     } else {
       callback(null)
     }
@@ -212,3 +213,26 @@ export const getUserAnalytics = (userId: string, startDate?: string, endDate?: s
 
   return getDocuments<Analytics>('analytics', constraints)
 }
+
+// ===== Cross-account display access grants =====
+// Lets a display client signed into a DIFFERENT account read the owner's displays/content/schedules.
+// Doc id is `${ownerUid}_${clientUid}` so rules can check existence by the requesting client's uid.
+
+export const grantClientAccess = async (
+  ownerUid: string,
+  clientUid: string,
+  data: { clientEmail?: string | null; displayId: string; deviceId: string; role: string }
+) => {
+  await setDoc(doc(db, 'displayAccess', `${ownerUid}_${clientUid}`), {
+    ownerUid,
+    clientUid,
+    clientEmail: data.clientEmail ?? null,
+    displayId: data.displayId,
+    deviceId: data.deviceId,
+    role: data.role,
+    createdAt: new Date().toISOString(),
+  })
+}
+
+export const revokeClientAccess = (ownerUid: string, clientUid: string) =>
+  deleteFsDoc(doc(db, 'displayAccess', `${ownerUid}_${clientUid}`))

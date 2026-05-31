@@ -16,10 +16,9 @@ import {
   Shield,
   HelpCircle,
   ExternalLink,
-  Github,
+  Code2,
   Rocket,
   Users,
-  Linkedin,
   Briefcase
 } from "lucide-react"
 
@@ -371,7 +370,7 @@ export default function AboutPage() {
                         onClick={() => window.open(member.github, '_blank')}
                         title="GitHub"
                       >
-                        <Github className="w-4 h-4" />
+                        <Code2 className="w-4 h-4" />
                       </Button>
                       <Button 
                         variant="ghost" 
@@ -380,7 +379,7 @@ export default function AboutPage() {
                         onClick={() => window.open(member.linkedin, '_blank')}
                         title="LinkedIn"
                       >
-                        <Linkedin className="w-4 h-4" />
+                        <ExternalLink className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>

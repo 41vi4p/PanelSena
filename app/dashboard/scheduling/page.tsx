@@ -76,6 +76,7 @@ export default function SchedulingPage() {
 
   const activeCount = schedules.filter((s) => s.status === "active").length
   const pausedCount = schedules.filter((s) => s.status === "paused").length
+  const scheduledCount = schedules.length - activeCount - pausedCount
 
   if (loading) {
     return (
@@ -153,18 +154,18 @@ export default function SchedulingPage() {
           </TabsList>
 
           <TabsContent value="list" className="mt-6">
-            <ScheduleList schedules={filteredSchedules} onEdit={handleEditSchedule} onDelete={handleDeleteSchedule} />
+            <ScheduleList schedules={filteredSchedules as any} onEdit={handleEditSchedule as any} onDelete={handleDeleteSchedule as any} />
           </TabsContent>
 
           <TabsContent value="calendar" className="mt-6">
-            <ScheduleCalendar schedules={schedules} />
+            <ScheduleCalendar schedules={schedules as any} />
           </TabsContent>
         </Tabs>
 
         {showForm && (
           <ScheduleForm
-            schedule={editingSchedule}
-            onSave={editingSchedule ? handleUpdateSchedule : handleAddSchedule}
+            schedule={editingSchedule as any}
+            onSave={(editingSchedule ? handleUpdateSchedule : handleAddSchedule) as any}
             onClose={handleCloseForm}
           />
         )}
