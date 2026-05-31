@@ -145,7 +145,7 @@ export default function AboutPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardDescription>Version</CardDescription>
-                <CardTitle className="text-2xl">1.7.2</CardTitle>
+                <CardTitle className="text-2xl">1.8.0</CardTitle>
               </CardHeader>
             </Card>
             <Card>

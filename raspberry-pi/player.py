@@ -707,11 +707,42 @@ class PanelSenaPlayer:
             self.stop_playback()
 
     def set_volume(self, volume):
-        """Set playback volume"""
+        """Set playback volume.
+
+        Playback runs as a `vlc` subprocess, so the unused python-vlc media-player
+        instance can't change the volume. Control the system mixer instead so the change
+        applies to the current and future VLC subprocesses.
+        """
         self.volume = max(0, min(100, volume))
-        self.player.audio_set_volume(self.volume)
+
+        applied = False
+        # Preferred: PulseAudio/PipeWire
+        try:
+            result = subprocess.run(
+                ['pactl', 'set-sink-volume', '@DEFAULT_SINK@', f'{self.volume}%'],
+                capture_output=True, text=True, timeout=5
+            )
+            applied = result.returncode == 0
+        except (FileNotFoundError, Exception) as e:
+            print(f"[DEBUG] pactl not available: {e}")
+
+        # Fallback: ALSA
+        if not applied:
+            try:
+                result = subprocess.run(
+                    ['amixer', 'set', 'Master', f'{self.volume}%'],
+                    capture_output=True, text=True, timeout=5
+                )
+                applied = result.returncode == 0
+            except (FileNotFoundError, Exception) as e:
+                print(f"[DEBUG] amixer not available: {e}")
+
+        if applied:
+            print(f"[INFO] Volume set to {self.volume}%")
+        else:
+            print(f"[WARN] Volume stored at {self.volume}% but no system mixer (pactl/amixer) available")
+
         self.update_status()
-        print(f"[INFO] Volume set to {self.volume}%")
 
     def set_brightness(self, brightness):
         """Set display brightness"""

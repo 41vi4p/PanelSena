@@ -5,7 +5,7 @@
 
 ### Cloud-Based Digital Signage Management Platform
 
-[![Version](https://img.shields.io/badge/version-1.7.2-blue.svg)](https://github.com/41vi4p/PanelSena)
+[![Version](https://img.shields.io/badge/version-1.8.0-blue.svg)](https://github.com/41vi4p/PanelSena)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Next.js](https://img.shields.io/badge/Next.js-14-black.svg)](https://nextjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5-blue.svg)](https://www.typescriptlang.org/)

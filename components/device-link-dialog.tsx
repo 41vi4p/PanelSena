@@ -76,7 +76,7 @@ export function DeviceLinkDialog({
   }
 
   return (
-    <Dialog open={open}>
+    <Dialog open={open} onOpenChange={(next) => { if (!loading && !success) onOpenChange(next) }}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
