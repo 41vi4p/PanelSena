@@ -1,0 +1,3 @@
+[submodule "client_app"]
+	path = client_app
+	url = git@github.com:Soham792/PanelSenaClientapp.git
